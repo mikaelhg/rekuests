@@ -1,7 +1,13 @@
 package rekuests
 
 import java.io.File
+import java.net.*
+import java.net.CookiePolicy.ACCEPT_ALL
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 
 class GetRequest(url: String) : Request(method = "GET", url = url)
 class PostRequest(url: String) : Request(method = "POST", url = url)
@@ -12,9 +18,10 @@ class OptionsRequest(url: String) : Request(method = "OPTIONS", url = url)
 
 class PreparedRequest
 
+@Suppress("MemberVisibilityCanBePrivate")
 open class Request(var method: String, var url: String) {
 
-    val headers = mutableMapOf<String, String>()
+    var headers = Headers()
 
     val files = mutableMapOf<String, File>()
 
@@ -24,7 +31,7 @@ open class Request(var method: String, var url: String) {
 
     var password: String? = null
 
-    var cookies = CookieJar()
+    protected val cookieManager = CookieManager(null, ACCEPT_ALL)
 
     protected val queryParameters = mutableListOf<Pair<String, String>>()
 
@@ -67,14 +74,59 @@ open class Request(var method: String, var url: String) {
         this.password = password
     }
 
-    fun cookies(cookies: CookieJar) {
-        this.cookies = cookies
+    fun cookies(cookies: List<HttpCookie>) {
+        val uri = URI.create(url)
+        cookies.forEach { c ->
+            c.domain = uri.host
+            cookieManager.cookieStore.add(uri, c)
+        }
     }
 
-    fun cookies(vararg params: Pair<String, Any>) { }
+    fun cookies(vararg cookies: HttpCookie) {
+        cookies(cookies.toList())
+    }
 
-    fun execute() = Response()
+    internal fun mergeSession(s: Session): Request {
+        this.headers = Headers() + s.headers + this.headers
+        return this
+    }
+
+    fun execute(): Response {
+
+        val clientBuilder = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(20))
+                .cookieHandler(cookieManager)
+
+        val requestBuilder = HttpRequest.newBuilder()
+                .method(this.method, this.bodyPublisher())
+                .uri(URI.create(this.url))
+
+        println("this.headers: $headers")
+
+        this.headers.forEach { (k, v) -> requestBuilder.header(k, v) }
+
+        if (null != this.username && null != this.password) {
+            clientBuilder.authenticator(MyAuthenticator(this.username!!, this.password!!))
+        }
+
+        val client = clientBuilder.build()
+        val request = requestBuilder.build()
+
+        println("request.headers: ${request.headers()}")
+
+        val response = client.send(request, BodyHandlers.ofInputStream())
+
+        return Response(response, cookieManager.cookieStore)
+    }
+
+    protected fun bodyPublisher() = HttpRequest.BodyPublishers.noBody()
 
     fun prepare() = PreparedRequest()
 
+}
+
+internal class MyAuthenticator(private val username: String, private val password: String) : Authenticator() {
+    override fun getPasswordAuthentication() = PasswordAuthentication(username, password.toCharArray())
 }

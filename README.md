@@ -30,17 +30,13 @@ s.headers.update("x-test" to "true")
 
 s.get("https://httpbin.org/headers") { headers("x-test2" to "true") }
 
-{
-    val r = s.get("https://httpbin.org/cookies") { cookies("from-my" to "browser") }
-    println(r.text)
-    // '{"cookies": {"from-my": "browser"}}'
-}
+var r = s.get("https://httpbin.org/cookies") { cookies("from-my" to "browser") }
+println(r.text)
+// '{"cookies": {"from-my": "browser"}}'
 
-{
-    val r = s.get('https://httpbin.org/cookies')
-    println(r.text)
-    // '{"cookies": {}}'
-}
+r = s.get("https://httpbin.org/cookies")
+println(r.text)
+// '{"cookies": {}}'
 
 rekuests.Session().use { s -> 
     s.get("https://httpbin.org/cookies/set/sessioncookie/123456789")

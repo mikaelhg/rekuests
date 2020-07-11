@@ -1,19 +1,28 @@
 package rekuests
 
+import java.io.InputStream
+import java.net.CookieStore
+import java.net.HttpCookie
+import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
 import java.time.Duration
+import java.util.*
+import java.util.Collections.unmodifiableList
 
-open class Response {
+open class Response(protected val httpResponse: HttpResponse<InputStream>,
+                    protected val cookieStore: CookieStore)
+{
 
     /**
      * Case-insensitive Dictionary of Response Headers. For example, headers['content-encoding'] will return the
      * value of a 'Content-Encoding' response header.
      */
-    var headers = mutableMapOf<String, String>()
+    val headers: Map<String, List<String>> by lazy { httpResponse.headers().map() }
 
     /**
      * Encoding to decode with when accessing r.text.
      */
-    var encoding: String = "utf-8"
+    val encoding: String by lazy { "utf-8" }
 
     /**
      * Content of the response, in unicode.
@@ -24,22 +33,22 @@ open class Response {
      * letter. If you can take advantage of non-HTTP knowledge to make a better guess at the encoding, you should
      * set r.encoding appropriately before accessing this property.
      */
-    var text = """{"foo": "bar"}"""
+    val text: String by lazy { httpResponse.body().readAllBytes().toString(StandardCharsets.UTF_8) }
 
     /**
      * The apparent encoding, provided by the chardet library.
      */
-    var apparent_encoding = "asd"
+    val apparent_encoding = "asd"
 
     /**
      * Content of the response, in bytes.
      */
-    var content = byteArrayOf(1, 2, 3, 4, 5)
+    val content: ByteArray by lazy { httpResponse.body().readAllBytes() }
 
     /**
      * A CookieJar of Cookies the server sent back.
      */
-    var cookies = mutableListOf<String>()
+    val cookies: List<HttpCookie> by lazy { cookieStore.cookies }
 
     /**
      * The amount of time elapsed between sending the request and the arrival of the response (as a timedelta).
