@@ -1,16 +1,14 @@
 package rekuests
 
 import java.io.InputStream
-import java.net.CookieStore
 import java.net.HttpCookie
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 import java.time.Duration
-import java.util.*
-import java.util.Collections.unmodifiableList
 
+@Suppress("MemberVisibilityCanBePrivate", "PropertyName")
 open class Response(protected val httpResponse: HttpResponse<InputStream>,
-                    protected val cookieStore: CookieStore)
+                    protected val session: Session)
 {
 
     /**
@@ -48,7 +46,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * A CookieJar of Cookies the server sent back.
      */
-    val cookies: List<HttpCookie> by lazy { cookieStore.cookies }
+    val cookies: List<HttpCookie> by lazy { session.cookieManager.cookieStore.cookies }
 
     /**
      * The amount of time elapsed between sending the request and the arrival of the response (as a timedelta).
@@ -56,13 +54,23 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      * finishing parsing the headers. It is therefore unaffected by consuming the response content or the
      * value of the stream keyword argument.
      */
-    var elapsed: Duration = Duration.ofSeconds(5)
+    var elapsed: Duration = Duration.ofSeconds(0)
 
     /**
      * A list of Response objects from the history of the Request. Any redirect responses will end up here.
      * The list is sorted from the oldest to the most recent request.
      */
-    var history = mutableListOf<String>()
+    val history: List<HttpResponse<InputStream>>
+        get() {
+            val ret = mutableListOf<HttpResponse<InputStream>>()
+            var optResponse = httpResponse.previousResponse()
+            while (optResponse.isPresent) {
+                val r = optResponse.get()
+                ret.add(0, r)
+                optResponse = r.previousResponse()
+            }
+            return ret
+        }
 
     /**
      * True if this Response one of the permanent versions of redirect.
@@ -135,12 +143,13 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * Textual reason of responded HTTP Status, e.g. “Not Found” or “OK”.
      */
-    fun reason() = "OK"
+    fun reason() = httpResponse.statusCode()
 
     /**
      * Integer Code of responded HTTP Status, e.g. 404 or 200.
      */
-    var status_code: Int = 200
+    val status_code: Int
+        get() = httpResponse.statusCode()
 
     override fun toString() = "<Response [$status_code]>"
 

@@ -4,12 +4,14 @@ The Python [requests](https://requests.readthedocs.io/) library for Kotlin.
 
 Under construction.
 
-\[Imagine a 90s Geocities animated "Under construction" GIF here.\]
+\[Imagine a '90s Geocities animated "Under construction" GIF here.\]
 
 ```kotlin
 import rekuests
 
-val r = rekuests.get("https://api.github.com/user") { auth("user", "pass") }
+val r = rekuests.get("https://api.github.com/user") {
+    auth("user", "pass")
+}
 
 r.status_code
 
@@ -27,10 +29,15 @@ val s = rekuests.Session()
 
 s.auth = "user" to "pass"
 s.headers.update("x-test" to "true")
+s.headers["foo"] = "bar"
 
-s.get("https://httpbin.org/headers") { headers("x-test2" to "true") }
+s.get("https://httpbin.org/headers") {
+    headers("x-test2" to "true")
+}
 
-var r = s.get("https://httpbin.org/cookies") { cookies("from-my" to "browser") }
+var r = s.get("https://httpbin.org/cookies") {
+    cookie("from-my" to "browser")
+}
 println(r.text)
 // '{"cookies": {"from-my": "browser"}}'
 

@@ -5,8 +5,9 @@ import java.net.*
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
+import java.time.Instant
 
 class GetRequest(url: String, session: Session = Session()) : Request(method = "GET", url = url, session = session)
 class PostRequest(url: String, session: Session = Session()) : Request(method = "POST", url = url, session = session)
@@ -47,7 +48,7 @@ open class Request(var method: String, var url: String, val session: Session) {
     }
 
     fun data(data: String) {
-        this.data = data.toByteArray(StandardCharsets.ISO_8859_1)
+        this.data = data.toByteArray(UTF_8)
     }
 
     fun data(data: Map<String, String>) {
@@ -71,6 +72,16 @@ open class Request(var method: String, var url: String, val session: Session) {
         this.password = password
     }
 
+    fun cookie(key: String, value: String) {
+        val uri = URI.create(url)
+        val cookie = HttpCookie(key, value).apply {
+            path = "/"
+            domain = uri.host
+            secure = false
+        }
+        session.cookieManager.cookieStore.add(uri, cookie)
+    }
+
     fun cookies(cookies: List<HttpCookie>) {
         val uri = URI.create(url)
         cookies.forEach { c ->
@@ -88,7 +99,7 @@ open class Request(var method: String, var url: String, val session: Session) {
         return this
     }
 
-    fun execute(): Response {
+    internal fun execute(): Response {
 
         val uri = URI.create(this.url)
 
@@ -111,13 +122,15 @@ open class Request(var method: String, var url: String, val session: Session) {
         val client = clientBuilder.build()
         val request = requestBuilder.build()
 
+        val t0 = Instant.now()
         val response = client.send(request, BodyHandlers.ofInputStream())
+        val t1 = Instant.now()
 
         session.cookieManager.put(uri, response.headers().map())
 
-        println("response.headers: ${response.headers().map()}")
-
-        return Response(response, session.cookieManager.cookieStore)
+        return Response(response, session).apply {
+            elapsed = Duration.between(t0, t1)
+        }
     }
 
     protected fun bodyPublisher() = HttpRequest.BodyPublishers.noBody()

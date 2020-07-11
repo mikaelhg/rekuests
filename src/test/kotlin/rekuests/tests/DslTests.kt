@@ -8,11 +8,10 @@ import org.mockserver.junit.jupiter.MockServerSettings
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
 import rekuests.Auth
-import java.net.HttpCookie
 
 @ExtendWith(MockServerExtension::class)
 @MockServerSettings(ports = [8787, 8888])
-class DslTests(val mockServer: ClientAndServer) {
+class DslTests(private val mockServer: ClientAndServer) {
 
     init {
         mockServer
@@ -81,12 +80,7 @@ class DslTests(val mockServer: ClientAndServer) {
         s.headers.update("x-test" to "true")
 
         var r = s.get("$baseUrl/cookies") {
-            // cookies("from-my" to "browser")
-            cookies(HttpCookie("from-my", "browser").apply {
-                path = "/"
-                domain = "127.0.0.1"
-                secure = false
-            })
+            cookie("from-my", "browser")
         }
         println(r.text)
         // '{"cookies": {"from-my": "browser"}}'
