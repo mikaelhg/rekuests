@@ -2,24 +2,23 @@ package rekuests
 
 import java.io.File
 import java.net.*
-import java.net.CookiePolicy.ACCEPT_ALL
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets
 import java.time.Duration
 
-class GetRequest(url: String) : Request(method = "GET", url = url)
-class PostRequest(url: String) : Request(method = "POST", url = url)
-class PutRequest(url: String) : Request(method = "PUT", url = url)
-class DeleteRequest(url: String) : Request(method = "DELETE", url = url)
-class HeadRequest(url: String) : Request(method = "HEAD", url = url)
-class OptionsRequest(url: String) : Request(method = "OPTIONS", url = url)
+class GetRequest(url: String, session: Session = Session()) : Request(method = "GET", url = url, session = session)
+class PostRequest(url: String, session: Session = Session()) : Request(method = "POST", url = url, session = session)
+class PutRequest(url: String, session: Session = Session()) : Request(method = "PUT", url = url, session = session)
+class DeleteRequest(url: String, session: Session = Session()) : Request(method = "DELETE", url = url, session = session)
+class HeadRequest(url: String, session: Session = Session()) : Request(method = "HEAD", url = url, session = session)
+class OptionsRequest(url: String, session: Session = Session()) : Request(method = "OPTIONS", url = url, session = session)
 
 class PreparedRequest
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class Request(var method: String, var url: String) {
+open class Request(var method: String, var url: String, val session: Session) {
 
     var headers = Headers()
 
@@ -30,8 +29,6 @@ open class Request(var method: String, var url: String) {
     var username: String? = null
 
     var password: String? = null
-
-    protected val cookieManager = CookieManager(null, ACCEPT_ALL)
 
     protected val queryParameters = mutableListOf<Pair<String, String>>()
 
@@ -78,7 +75,7 @@ open class Request(var method: String, var url: String) {
         val uri = URI.create(url)
         cookies.forEach { c ->
             c.domain = uri.host
-            cookieManager.cookieStore.add(uri, c)
+            session.cookieManager.cookieStore.add(uri, c)
         }
     }
 
@@ -93,17 +90,17 @@ open class Request(var method: String, var url: String) {
 
     fun execute(): Response {
 
+        val uri = URI.create(this.url)
+
         val clientBuilder = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(20))
-                .cookieHandler(cookieManager)
+                .cookieHandler(session.cookieManager)
 
         val requestBuilder = HttpRequest.newBuilder()
                 .method(this.method, this.bodyPublisher())
-                .uri(URI.create(this.url))
-
-        println("this.headers: $headers")
+                .uri(uri)
 
         this.headers.forEach { (k, v) -> requestBuilder.header(k, v) }
 
@@ -114,11 +111,13 @@ open class Request(var method: String, var url: String) {
         val client = clientBuilder.build()
         val request = requestBuilder.build()
 
-        println("request.headers: ${request.headers()}")
-
         val response = client.send(request, BodyHandlers.ofInputStream())
 
-        return Response(response, cookieManager.cookieStore)
+        session.cookieManager.put(uri, response.headers().map())
+
+        println("response.headers: ${response.headers().map()}")
+
+        return Response(response, session.cookieManager.cookieStore)
     }
 
     protected fun bodyPublisher() = HttpRequest.BodyPublishers.noBody()

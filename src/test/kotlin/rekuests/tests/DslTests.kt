@@ -83,6 +83,7 @@ class DslTests(val mockServer: ClientAndServer) {
         var r = s.get("$baseUrl/cookies") {
             // cookies("from-my" to "browser")
             cookies(HttpCookie("from-my", "browser").apply {
+                path = "/"
                 domain = "127.0.0.1"
                 secure = false
             })
