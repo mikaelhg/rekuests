@@ -1,61 +1,34 @@
 package rekuests.tests
 
+import io.javalin.Javalin
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.mockserver.integration.ClientAndServer
-import org.mockserver.junit.jupiter.MockServerExtension
-import org.mockserver.junit.jupiter.MockServerSettings
-import org.mockserver.model.HttpRequest.request
-import org.mockserver.model.HttpResponse.response
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import rekuests.Auth
 
-@ExtendWith(MockServerExtension::class)
-@MockServerSettings(ports = [8787, 8888])
-class DslTests(private val mockServer: ClientAndServer) {
+class DslTests {
 
-    init {
-        mockServer
-                .`when`(
-                        request()
-                                .withMethod("GET")
-                                .withPath("/cookies")
-                                .withCookie("from-my", "browser")
-                )
-                .respond(
-                        response()
-                                .withStatusCode(200)
-                                .withCookie("foo", "bar")
-                                .withBody("""{"cookie": "OK"}""")
-                )
-        mockServer
-                .`when`(
-                        request()
-                                .withMethod("GET")
-                                .withPath("/cookies")
-                                .withCookie("foo", "bar")
-                )
-                .respond(
-                        response()
-                                .withStatusCode(200)
-                                .withCookie("foo", "bar")
-                                .withBody("""{"foo": "bar"}""")
-                )
-        mockServer
-                .`when`(
-                        request()
-                                .withMethod("GET")
-                                .withPath("/cookies")
-                )
-                .respond(
-                        response()
-                                .withStatusCode(200)
-                                .withBody("""{"no": "cookies"}""")
-                )
+    private lateinit var engine: Javalin
+
+    private val localPort = 25812
+
+    @BeforeEach
+    fun beforeEach() {
+        engine = Javalin.create()
+            .get("/cookies") { ctx ->
+                ctx.json(mapOf("cookies" to ctx.cookieMap()))
+            }
+            .start(localPort)
+    }
+
+    @AfterEach
+    fun afterEach() {
+        engine.stop()
     }
 
     @Test
     fun testDsl() {
-        val url = "http://127.0.0.1:${mockServer.localPort}/cookies"
+        val url = "http://127.0.0.1:${localPort}/cookies"
         val r = rekuests.get(url) {
             auth("user", "pass")
             params("a" to "b")
@@ -64,12 +37,11 @@ class DslTests(private val mockServer: ClientAndServer) {
         r.encoding
         r.text
         r.json()
-
     }
 
     @Test
     fun sessionTest() {
-        val baseUrl = "http://127.0.0.1:${mockServer.localPort}"
+        val baseUrl = "http://127.0.0.1:${localPort}"
         println("baseUrl: $baseUrl")
 
         val s = rekuests.Session()

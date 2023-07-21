@@ -10,10 +10,15 @@ import java.time.Duration
 import java.time.Instant
 
 class GetRequest(url: String, session: Session = Session()) : Request(method = "GET", url = url, session = session)
+
 class PostRequest(url: String, session: Session = Session()) : Request(method = "POST", url = url, session = session)
+
 class PutRequest(url: String, session: Session = Session()) : Request(method = "PUT", url = url, session = session)
+
 class DeleteRequest(url: String, session: Session = Session()) : Request(method = "DELETE", url = url, session = session)
+
 class HeadRequest(url: String, session: Session = Session()) : Request(method = "HEAD", url = url, session = session)
+
 class OptionsRequest(url: String, session: Session = Session()) : Request(method = "OPTIONS", url = url, session = session)
 
 class PreparedRequest
@@ -133,12 +138,13 @@ open class Request(var method: String, var url: String, val session: Session) {
         }
     }
 
-    protected fun bodyPublisher() = HttpRequest.BodyPublishers.noBody()
+    protected fun bodyPublisher() = HttpRequest.BodyPublishers.noBody()!!
 
     fun prepare() = PreparedRequest()
 
 }
 
 internal class MyAuthenticator(private val username: String, private val password: String) : Authenticator() {
-    override fun getPasswordAuthentication() = PasswordAuthentication(username, password.toCharArray())
+    override fun getPasswordAuthentication() =
+        PasswordAuthentication(username, password.toCharArray())
 }
