@@ -3,6 +3,7 @@ package rekuests.tests
 import io.javalin.Javalin
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import rekuests.Auth
 
@@ -54,12 +55,10 @@ class DslTests {
         var r = s.get("$baseUrl/cookies") {
             cookie("from-my", "browser")
         }
-        println(r.text)
-        // '{"cookies": {"from-my": "browser"}}'
+        Assertions.assertEquals("""{"cookies":{"from-my":"browser"}}""", r.text)
 
-        r = s.get("$baseUrl/cookies")
-        println(r.text)
-        // '{"cookies": {}}'
+        r = rekuests.get("$baseUrl/cookies")
+        Assertions.assertEquals("""{"cookies":{}}""", r.text)
 
         /*
         rekuests.Session().use { s ->

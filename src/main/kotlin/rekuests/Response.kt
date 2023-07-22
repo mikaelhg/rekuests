@@ -3,7 +3,9 @@ package rekuests
 import java.io.InputStream
 import java.net.HttpCookie
 import java.net.http.HttpResponse
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
 
 @Suppress("MemberVisibilityCanBePrivate", "PropertyName")
@@ -31,7 +33,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      * letter. If you can take advantage of non-HTTP knowledge to make a better guess at the encoding, you should
      * set r.encoding appropriately before accessing this property.
      */
-    val text: String by lazy { httpResponse.body().readAllBytes().toString(StandardCharsets.UTF_8) }
+    val text: String by lazy { content.toString(Charset.forName(encoding)) }
 
     /**
      * The apparent encoding, provided by the chardet library.

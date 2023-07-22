@@ -1,7 +1,10 @@
 package rekuests
 
+import rekuests.util.Headers
+import rekuests.util.MyAuthenticator
 import java.io.File
-import java.net.*
+import java.net.HttpCookie
+import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
@@ -142,9 +145,4 @@ open class Request(var method: String, var url: String, val session: Session) {
 
     fun prepare() = PreparedRequest()
 
-}
-
-internal class MyAuthenticator(private val username: String, private val password: String) : Authenticator() {
-    override fun getPasswordAuthentication() =
-        PasswordAuthentication(username, password.toCharArray())
 }

@@ -1,5 +1,6 @@
 package rekuests
 
+import rekuests.util.Headers
 import java.io.Closeable
 import java.net.CookieManager
 import java.net.CookiePolicy
@@ -73,19 +74,6 @@ open class Session : AutoCloseable, Closeable {
     }
 
     protected open fun newCookieManager() = CookieManager(null, CookiePolicy.ACCEPT_ALL)
-
-}
-
-open class Headers : HashMap<String, String>() {
-
-    fun update(key: String, value: String) = put(key, value)
-
-    fun update(pair: Pair<String, String>) = put(pair.first, pair.second)
-
-    operator fun plus(b: Headers): Headers {
-        this.putAll(b)
-        return this
-    }
 
 }
 
