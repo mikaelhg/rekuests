@@ -1,6 +1,7 @@
 package rekuests.tests
 
 import io.javalin.Javalin
+import kotlinx.serialization.json.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
@@ -12,12 +13,22 @@ class DslTests {
     private lateinit var engine: Javalin
 
     private val localPort = 25812
+    private val baseUrl = "http://127.0.0.1:${localPort}"
 
     @BeforeEach
     fun beforeEach() {
         engine = Javalin.create()
             .get("/cookies") { ctx ->
                 ctx.json(mapOf("cookies" to ctx.cookieMap()))
+            }
+            .post("/data/12345") { ctx ->
+                if (ctx.contentType() == "application/octet-stream"
+                    && ctx.bodyAsBytes().contentEquals(byteArrayOf(1, 2, 3, 4, 5)))
+                {
+                    ctx.status(200)
+                } else {
+                    ctx.status(500)
+                }
             }
             .start(localPort)
     }
@@ -29,43 +40,46 @@ class DslTests {
 
     @Test
     fun testDsl() {
-        val url = "http://127.0.0.1:${localPort}/cookies"
+        val url = "${baseUrl}/cookies"
         val r = rekuests.get(url) {
             auth("user", "pass")
             params("a" to "b")
         }
-        r.headers["content-type"]
-        r.encoding
-        r.text
-        r.json()
     }
 
     @Test
     fun sessionTest() {
-        val baseUrl = "http://127.0.0.1:${localPort}"
-        println("baseUrl: $baseUrl")
-
-        val s = rekuests.Session()
-        s.auth = Auth("asd", "asf")
-        s.auth = "user" to "pass"
-        s.headers["foo"] = "bar"
-        s.headers.update("x-test", "true")
-        s.headers.update("x-test" to "true")
-
+        val s = rekuests.Session().apply {
+            auth = Auth("asd", "asf")
+            auth = "user" to "pass"
+            headers["foo"] = "bar"
+            headers.update("x-test", "true")
+            headers.update("x-test" to "true")
+        }
         var r = s.get("$baseUrl/cookies") {
             cookie("from-my", "browser")
         }
         Assertions.assertEquals("""{"cookies":{"from-my":"browser"}}""", r.text)
-
         r = rekuests.get("$baseUrl/cookies")
         Assertions.assertEquals("""{"cookies":{}}""", r.text)
+        val json = r.json()["cookies"]?.get("from-my")?.getContent()
+    }
 
-        /*
-        rekuests.Session().use { s ->
-            s.get("https://httpbin.org/cookies/set/sessioncookie/123456789")
+    operator fun JsonElement.get(key: String): JsonElement? {
+        return (this as? JsonObject)?.get(key)
+    }
+
+    fun JsonElement.getContent(): String? {
+        return (this as? JsonPrimitive)?.content
+    }
+
+    @Test
+    fun withData() {
+        val r = rekuests.post("$baseUrl/data/12345") {
+            headers["content-type"] = "application/octet-stream"
+            data = byteArrayOf(1, 2, 3, 4, 5)
         }
-        */
-
+        Assertions.assertEquals(200, r.status_code)
     }
 
 }

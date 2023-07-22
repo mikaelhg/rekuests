@@ -7,6 +7,8 @@ import java.net.HttpCookie
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
+import java.net.http.HttpRequest.BodyPublisher
+import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
@@ -102,9 +104,8 @@ open class Request(var method: String, var url: String, val session: Session) {
         cookies(cookies.toList())
     }
 
-    internal fun mergeSession(s: Session): Request {
-        this.headers = Headers() + s.headers + this.headers
-        return this
+    internal fun mergeSession(s: Session) = apply {
+        headers = Headers() + s.headers + headers
     }
 
     internal fun execute(): Response {
@@ -141,7 +142,8 @@ open class Request(var method: String, var url: String, val session: Session) {
         }
     }
 
-    protected fun bodyPublisher() = HttpRequest.BodyPublishers.noBody()!!
+    protected fun bodyPublisher() =
+        data?.let(BodyPublishers::ofByteArray) ?: BodyPublishers.noBody()!!
 
     fun prepare() = PreparedRequest()
 

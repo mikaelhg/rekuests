@@ -18,6 +18,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
+
     testImplementation(enforcedPlatform("org.slf4j:slf4j-parent:2.0.7"))
     testImplementation(enforcedPlatform("ch.qos.logback:logback-parent:1.4.8"))
     testImplementation(enforcedPlatform("org.eclipse.jetty:jetty-project:11.0.15"))

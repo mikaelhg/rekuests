@@ -1,5 +1,6 @@
 package rekuests
 
+import kotlinx.serialization.json.Json
 import java.io.InputStream
 import java.net.HttpCookie
 import java.net.http.HttpResponse
@@ -77,30 +78,36 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * True if this Response one of the permanent versions of redirect.
      */
-    var is_permanent_redirect = false
+    val is_permanent_redirect by lazy {
+        "location" in headers && status_code in setOf(301, 308)
+    }
 
     /**
      * True if this Response is a well-formed HTTP redirect that could have been processed automatically
      * (by Session.resolve_redirects).
      */
-    var is_redirect = false
+    val is_redirect by lazy {
+        "location" in headers && status_code in setOf(301, 302, 303, 307, 308)
+    }
 
     /**
-     * Iterates over the response data. When stream=True is set on the request, this avoids reading the content
-     * at once into memory for large responses. The chunk size is the number of bytes it should read into memory.
+     * Iterates over the response data. When stream=True is set on the request, this avoids reading
+     * the content at once into memory for large responses. The chunk size is the number of bytes
+     * it should read into memory.
      * This is not necessarily the length of each item returned as decoding can take place.
      *
-     * chunk_size must be of type int or None. A value of None will function differently depending on the value
-     * of stream. stream=True will read data as it arrives in whatever size the chunks are received.
-     * If stream=False, data is returned as a single chunk.
+     * chunk_size must be of type int or None. A value of None will function differently depending
+     * on the value of stream. stream=True will read data as it arrives in whatever size the chunks
+     * are received. If stream=False, data is returned as a single chunk.
      *
-     * If decode_unicode is True, content will be decoded using the best available encoding based on the response.
+     * If decode_unicode is True, content will be decoded using the best available encoding
+     * based on the response.
      */
     fun iter_content(chunk_size: Int = 1, decode_unicode: Boolean = false) { }
 
     /**
-     * Iterates over the response data, one line at a time. When stream=True is set on the request, this avoids
-     * reading the content at once into memory for large responses.
+     * Iterates over the response data, one line at a time. When stream=True is set on the request,
+     * this avoids reading the content at once into memory for large responses.
      */
     fun iter_lines(chunk_size: Int = 512, decode_unicode: Boolean = false, delimiter: String?) { }
 
@@ -108,12 +115,31 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      * Returns the json-encoded content of a response, if any.
      * @throws ValueError If the response body does not contain valid json.
      */
-    fun json() = mapOf("foo" to "bar")
+    fun json() = Json.parseToJsonElement(text)
 
     /**
      * Returns the parsed header links of the response, if any.
      */
-    var links = mutableListOf<String>()
+    val links by lazy {
+        val result = mutableListOf<Map<String, String>>()
+        var current = mutableMapOf<String, String>()
+        val replace_chars = charArrayOf(' ', '\'', '"')
+        for (link in headers["link"] ?: emptyList()) {
+            for (component in link.split(';')) {
+                if (component[0] == '<' && current.isNotEmpty()) {
+                    result.add(current)
+                    current = mutableMapOf()
+                }
+                if (component[0] == '<') {
+                    current["url"] = component.substring(1, link.length-1)
+                } else {
+                    val (key, value) = component.split('=', limit = 2)
+                    current[key.trim(*replace_chars)] = value.trim(*replace_chars)
+                }
+            }
+        }
+        result
+    }
 
     /**
      * Returns a PreparedRequest for the next request in a redirect chain, if there is one.
@@ -150,8 +176,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * Integer Code of responded HTTP Status, e.g. 404 or 200.
      */
-    val status_code: Int
-        get() = httpResponse.statusCode()
+    val status_code: Int by lazy { httpResponse.statusCode() }
 
     override fun toString() = "<Response [$status_code]>"
 
