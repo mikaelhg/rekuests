@@ -5,8 +5,6 @@ import java.io.InputStream
 import java.net.HttpCookie
 import java.net.http.HttpResponse
 import java.nio.charset.Charset
-import java.nio.charset.StandardCharsets
-import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
 
 @Suppress("MemberVisibilityCanBePrivate", "PropertyName")
@@ -15,15 +13,16 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
 {
 
     /**
-     * Case-insensitive Dictionary of Response Headers. For example, headers['content-encoding'] will return the
-     * value of a 'Content-Encoding' response header.
+     * Case-insensitive Dictionary of Response Headers. For example,
+     * headers['content-encoding'] will return the value of a 'Content-Encoding'
+     * response header.
      */
     val headers: Map<String, List<String>> by lazy { httpResponse.headers().map() }
 
     /**
      * Encoding to decode with when accessing r.text.
      */
-    val encoding: String by lazy { "utf-8" }
+    val encoding: String by lazy { "UTF-8" }
 
     /**
      * Content of the response, in unicode.
@@ -119,26 +118,23 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
 
     /**
      * Returns the parsed header links of the response, if any.
+     *
+     * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Link
      */
     val links by lazy {
-        val result = mutableListOf<Map<String, String>>()
-        var current = mutableMapOf<String, String>()
-        val replace_chars = charArrayOf(' ', '\'', '"')
-        for (link in headers["link"] ?: emptyList()) {
-            for (component in link.split(';')) {
-                if (component[0] == '<' && current.isNotEmpty()) {
-                    result.add(current)
-                    current = mutableMapOf()
+        val replaceChars = charArrayOf(' ', '\'', '"')
+        headers["link"]?.flatMap { it.split(',') }
+            ?.map { l ->
+                val elements = l.trim().split(';')
+                val url = elements[0].substring(1, elements[0].length-1)
+                val map = mutableMapOf("url" to url)
+                elements.listIterator(1).forEach { e ->
+                    val (k, v) = e.split('=', limit = 2)
+                    map[k.trim(*replaceChars)] = v.trim(*replaceChars)
                 }
-                if (component[0] == '<') {
-                    current["url"] = component.substring(1, link.length-1)
-                } else {
-                    val (key, value) = component.split('=', limit = 2)
-                    current[key.trim(*replace_chars)] = value.trim(*replace_chars)
-                }
+                map
             }
-        }
-        result
+            ?.toList() ?: emptyList()
     }
 
     /**

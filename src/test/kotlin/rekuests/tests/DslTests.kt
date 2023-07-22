@@ -21,6 +21,11 @@ class DslTests {
             .get("/cookies") { ctx ->
                 ctx.json(mapOf("cookies" to ctx.cookieMap()))
             }
+            .get("/headers/link") { ctx ->
+                ctx.status(200)
+                    .header("link", """<https://one.example.com>; rel="preconnect", <https://two.example.com>; rel="preconnect", <https://three.example.com>; rel="preconnect"""")
+                    .result("OK")
+            }
             .post("/data/12345") { ctx ->
                 if (ctx.contentType() == "application/octet-stream"
                     && ctx.bodyAsBytes().contentEquals(byteArrayOf(1, 2, 3, 4, 5)))
@@ -62,7 +67,7 @@ class DslTests {
         Assertions.assertEquals("""{"cookies":{"from-my":"browser"}}""", r.text)
         r = rekuests.get("$baseUrl/cookies")
         Assertions.assertEquals("""{"cookies":{}}""", r.text)
-        val json = r.json()["cookies"]?.get("from-my")?.getContent()
+        // val json = r.json()["cookies"]?.get("from-my")?.getContent()
     }
 
     operator fun JsonElement.get(key: String): JsonElement? {
@@ -80,6 +85,18 @@ class DslTests {
             data = byteArrayOf(1, 2, 3, 4, 5)
         }
         Assertions.assertEquals(200, r.status_code)
+    }
+
+    @Test
+    fun withLinkHeader() {
+        val r = rekuests.get("$baseUrl/headers/link")
+        println(r.links)
+        Assertions.assertEquals("https://one.example.com", r.links[0]["url"])
+        Assertions.assertEquals("https://two.example.com", r.links[1]["url"])
+        Assertions.assertEquals("https://three.example.com", r.links[2]["url"])
+        Assertions.assertEquals("preconnect", r.links[0]["rel"])
+        Assertions.assertEquals("preconnect", r.links[1]["rel"])
+        Assertions.assertEquals("preconnect", r.links[2]["rel"])
     }
 
 }
