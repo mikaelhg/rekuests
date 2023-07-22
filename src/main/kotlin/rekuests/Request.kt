@@ -113,7 +113,7 @@ open class Request(var method: String, var url: String, val session: Session) {
         val uri = URI.create(this.url)
 
         val clientBuilder = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
+                .version(HttpClient.Version.HTTP_2)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(20))
                 .cookieHandler(session.cookieManager)

@@ -84,13 +84,12 @@ class DslTests {
             headers["content-type"] = "application/octet-stream"
             data = byteArrayOf(1, 2, 3, 4, 5)
         }
-        Assertions.assertEquals(200, r.status_code)
+        Assertions.assertEquals(200, r.statusCode)
     }
 
     @Test
     fun withLinkHeader() {
         val r = rekuests.get("$baseUrl/headers/link")
-        println(r.links)
         Assertions.assertEquals("https://one.example.com", r.links[0]["url"])
         Assertions.assertEquals("https://two.example.com", r.links[1]["url"])
         Assertions.assertEquals("https://three.example.com", r.links[2]["url"])

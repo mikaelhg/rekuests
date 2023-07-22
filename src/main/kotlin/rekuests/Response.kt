@@ -1,13 +1,14 @@
 package rekuests
 
 import kotlinx.serialization.json.Json
+import rekuests.util.RekuestException
 import java.io.InputStream
 import java.net.HttpCookie
 import java.net.http.HttpResponse
 import java.nio.charset.Charset
 import java.time.Duration
 
-@Suppress("MemberVisibilityCanBePrivate", "PropertyName")
+@Suppress("MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 open class Response(protected val httpResponse: HttpResponse<InputStream>,
                     protected val session: Session)
 {
@@ -22,7 +23,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * Encoding to decode with when accessing r.text.
      */
-    val encoding: String by lazy { "UTF-8" }
+    var encoding: String = "UTF-8"
 
     /**
      * Content of the response, in unicode.
@@ -38,7 +39,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * The apparent encoding, provided by the chardet library.
      */
-    val apparent_encoding = "asd"
+    val apparentEncoding = "asd"
 
     /**
      * Content of the response, in bytes.
@@ -51,15 +52,16 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     val cookies: List<HttpCookie> by lazy { session.cookieManager.cookieStore.cookies }
 
     /**
-     * The amount of time elapsed between sending the request and the arrival of the response (as a timedelta).
-     * This property specifically measures the time taken between sending the first byte of the request and
-     * finishing parsing the headers. It is therefore unaffected by consuming the response content or the
-     * value of the stream keyword argument.
+     * The amount of time elapsed between sending the request and the arrival of the response
+     * (as a timedelta). This property specifically measures the time taken between sending the
+     * first byte of the request and finishing parsing the headers. It is therefore unaffected
+     * by consuming the response content or the value of the stream keyword argument.
      */
     var elapsed: Duration = Duration.ofSeconds(0)
 
     /**
-     * A list of Response objects from the history of the Request. Any redirect responses will end up here.
+     * A list of Response objects from the history of the Request.
+     * Any redirect responses will end up here.
      * The list is sorted from the oldest to the most recent request.
      */
     val history: List<HttpResponse<InputStream>>
@@ -77,16 +79,16 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * True if this Response one of the permanent versions of redirect.
      */
-    val is_permanent_redirect by lazy {
-        "location" in headers && status_code in setOf(301, 308)
+    val isPermanentRedirect by lazy {
+        "location" in headers && statusCode in setOf(301, 308)
     }
 
     /**
      * True if this Response is a well-formed HTTP redirect that could have been processed automatically
      * (by Session.resolve_redirects).
      */
-    val is_redirect by lazy {
-        "location" in headers && status_code in setOf(301, 302, 303, 307, 308)
+    val isRedirect by lazy {
+        "location" in headers && statusCode in setOf(301, 302, 303, 307, 308)
     }
 
     /**
@@ -102,13 +104,13 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      * If decode_unicode is True, content will be decoded using the best available encoding
      * based on the response.
      */
-    fun iter_content(chunk_size: Int = 1, decode_unicode: Boolean = false) { }
+    fun iterateContent(chunkSize: Int = 1, decodeUnicode: Boolean = false) { }
 
     /**
      * Iterates over the response data, one line at a time. When stream=True is set on the request,
      * this avoids reading the content at once into memory for large responses.
      */
-    fun iter_lines(chunk_size: Int = 512, decode_unicode: Boolean = false, delimiter: String?) { }
+    fun iterateLines(chunkSize: Int = 512, decodeUnicode: Boolean = false, delimiter: String?) { }
 
     /**
      * Returns the json-encoded content of a response, if any.
@@ -149,20 +151,21 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      * client error or a server error. If the status code is between 200 and 400, this will return True.
      * This is not a check to see if the response code is 200 OK.
      */
-    fun ok() = status_code < 400
+    fun ok() = statusCode < 400
 
     /**
-     * Raises HTTPError, if one occurred.
+     * Raises RekuestException, if one occurred.
+     * @throws RekuestException
      */
-    // @Throws(HTTPError)
-    fun raise_for_status() { }
+    @Throws(RekuestException::class)
+    fun raiseForStatus() { }
 
     /**
      * File-like object representation of response (for advanced usage).
      * Use of raw requires that stream=True be set on the request.
      * This requirement does not apply for use internally to Requests.
      */
-    fun raw() { }
+    fun raw() = httpResponse
 
     /**
      * Textual reason of responded HTTP Status, e.g. “Not Found” or “OK”.
@@ -172,8 +175,8 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * Integer Code of responded HTTP Status, e.g. 404 or 200.
      */
-    val status_code: Int by lazy { httpResponse.statusCode() }
+    val statusCode: Int by lazy { httpResponse.statusCode() }
 
-    override fun toString() = "<Response [$status_code]>"
+    override fun toString() = "<Response [$statusCode]>"
 
 }
