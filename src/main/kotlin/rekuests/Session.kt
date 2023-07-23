@@ -20,18 +20,18 @@ open class Session : AutoCloseable, Closeable {
             .execute()
 
     fun get(url: String): Response =
-        GetRequest(url, this)
+        Request("GET", url, this)
             .mergeSession(this)
             .execute()
 
-    fun get(url: String, init: GetRequest.() -> Unit): Response =
-        GetRequest(url, this)
+    fun get(url: String, init: Request.() -> Unit): Response =
+        Request("GET", url, this)
             .apply(init)
             .mergeSession(this)
             .execute()
 
-    fun post(url: String, data: ByteArray, init: PostRequest.() -> Unit): Response =
-        PostRequest(url, this)
+    fun post(url: String, data: ByteArray, init: Request.() -> Unit): Response =
+        Request("POST", url, this)
             .apply {
                 this.init()
                 this.data = data
@@ -39,32 +39,32 @@ open class Session : AutoCloseable, Closeable {
             .mergeSession(this)
             .execute()
 
-    fun post(url: String, init: PostRequest.() -> Unit): Response =
-        PostRequest(url, this)
+    fun post(url: String, init: Request.() -> Unit): Response =
+        Request("POST", url, this)
             .apply(init)
             .mergeSession(this)
             .execute()
 
-    fun put(url: String, init: PutRequest.() -> Unit): Response =
-        PutRequest(url, this)
+    fun put(url: String, init: Request.() -> Unit): Response =
+        Request("PUT", url, this)
             .apply(init)
             .mergeSession(this)
             .execute()
 
-    fun delete(url: String, init: DeleteRequest.() -> Unit): Response =
-        DeleteRequest(url, this)
+    fun delete(url: String, init: Request.() -> Unit): Response =
+        Request("DELETE", url, this)
             .apply(init)
             .mergeSession(this)
             .execute()
 
-    fun head(url: String, init: HeadRequest.() -> Unit): Response =
-        HeadRequest(url, this)
+    fun head(url: String, init: Request.() -> Unit): Response =
+        Request("HEAD", url, this)
             .apply(init)
             .mergeSession(this)
             .execute()
 
-    fun options(url: String, init: OptionsRequest.() -> Unit): Response =
-        OptionsRequest(url, this)
+    fun options(url: String, init: Request.() -> Unit): Response =
+        Request("OPTIONS", url, this)
             .apply(init)
             .mergeSession(this)
             .execute()

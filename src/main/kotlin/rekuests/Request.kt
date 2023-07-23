@@ -7,26 +7,11 @@ import java.net.HttpCookie
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpRequest.BodyPublisher
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
 import java.time.Instant
-
-class GetRequest(url: String, session: Session = Session()) : Request(method = "GET", url = url, session = session)
-
-class PostRequest(url: String, session: Session = Session()) : Request(method = "POST", url = url, session = session)
-
-class PutRequest(url: String, session: Session = Session()) : Request(method = "PUT", url = url, session = session)
-
-class DeleteRequest(url: String, session: Session = Session()) : Request(method = "DELETE", url = url, session = session)
-
-class HeadRequest(url: String, session: Session = Session()) : Request(method = "HEAD", url = url, session = session)
-
-class OptionsRequest(url: String, session: Session = Session()) : Request(method = "OPTIONS", url = url, session = session)
-
-class PreparedRequest
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class Request(var method: String, var url: String, val session: Session) {
@@ -144,7 +129,5 @@ open class Request(var method: String, var url: String, val session: Session) {
 
     protected fun bodyPublisher() =
         data?.let(BodyPublishers::ofByteArray) ?: BodyPublishers.noBody()!!
-
-    fun prepare() = PreparedRequest()
 
 }

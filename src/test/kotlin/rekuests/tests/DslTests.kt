@@ -65,6 +65,7 @@ class DslTests {
             cookie("from-my", "browser")
         }
         Assertions.assertEquals("""{"cookies":{"from-my":"browser"}}""", r.text)
+
         r = rekuests.get("$baseUrl/cookies")
         Assertions.assertEquals("""{"cookies":{}}""", r.text)
         // val json = r.json()["cookies"]?.get("from-my")?.getContent()

@@ -53,14 +53,14 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
 
     /**
      * The amount of time elapsed between sending the request and the arrival of the response
-     * (as a timedelta). This property specifically measures the time taken between sending the
+     * (as a Duration). This property specifically measures the time taken between sending the
      * first byte of the request and finishing parsing the headers. It is therefore unaffected
      * by consuming the response content or the value of the stream keyword argument.
      */
     var elapsed: Duration = Duration.ofSeconds(0)
 
     /**
-     * A list of Response objects from the history of the Request.
+     * A list of HttpResponse objects from the history of the Request.
      * Any redirect responses will end up here.
      * The list is sorted from the oldest to the most recent request.
      */
@@ -114,9 +114,10 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
 
     /**
      * Returns the json-encoded content of a response, if any.
-     * @throws ValueError If the response body does not contain valid json.
+     *
+     * @throws SerializationException If the response body does not contain valid json.
      */
-    fun json() = Json.parseToJsonElement(text)
+    inline fun <reified T> json(): T = Json.decodeFromString(text)
 
     /**
      * Returns the parsed header links of the response, if any.
@@ -145,7 +146,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     fun next() { }
 
     /**
-     * Returns True if status_code is less than 400, False if not.
+     * Returns True if statusCode is less than 400, False if not.
      *
      * This attribute checks if the status code of the response is between 400 and 600 to see if there was a
      * client error or a server error. If the status code is between 200 and 400, this will return True.
