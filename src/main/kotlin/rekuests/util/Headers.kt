@@ -6,8 +6,8 @@ open class Headers : HashMap<String, String>() {
 
     fun update(pair: Pair<String, String>) = put(pair.first, pair.second)
 
-    operator fun plus(b: Headers): Headers {
-        this.putAll(b)
+    fun update(headers: Headers): Headers {
+        this.putAll(headers)
         return this
     }
 

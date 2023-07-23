@@ -98,7 +98,7 @@ open class Request(var method: String, var url: String, val session: Session) {
     }
 
     internal fun mergeSession(s: Session) = apply {
-        headers = Headers() + s.headers + headers
+        headers = Headers().update(s.headers).update(headers)
     }
 
     internal fun execute(): Response {
