@@ -1,5 +1,13 @@
 package rekuests.util
 
+import java.security.SecureRandom
+import javax.net.ssl.SSLContext
+
+internal val noValidateSecurityContext =
+    SSLContext.getInstance("TLS").apply {
+        init(null, arrayOf(MockTrustManager()), SecureRandom())
+    }
+
 /**
  * Parse the HTTP header "Link" contents into a result from the Requests spec.
  */

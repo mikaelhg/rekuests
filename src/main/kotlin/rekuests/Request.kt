@@ -2,6 +2,7 @@ package rekuests
 
 import rekuests.util.Headers
 import rekuests.util.UsernamePasswordAuthenticator
+import rekuests.util.noValidateSecurityContext
 import rekuests.util.timed
 import java.io.File
 import java.net.HttpCookie
@@ -36,7 +37,9 @@ open class Request(var method: String, var url: String, val session: Session) {
 
     var httpVersion = HttpClient.Version.HTTP_2
 
-    var connectTimeout = Duration.ofSeconds(20)
+    var connectTimeout: Duration = Duration.ofSeconds(20)
+
+    val verifyCertificate = true
 
     fun headers(vararg headers: Pair<String, String>) {
         headers.forEach { (k, v) -> this.headers[k] = v }
@@ -111,6 +114,10 @@ open class Request(var method: String, var url: String, val session: Session) {
                 .connectTimeout(connectTimeout)
                 .cookieHandler(session.cookieManager)
 
+        if (!verifyCertificate) {
+            clientBuilder.sslContext(noValidateSecurityContext)
+        }
+
         val requestBuilder = HttpRequest.newBuilder()
                 .method(this.method, this.bodyPublisher())
                 .uri(uri)
@@ -123,7 +130,6 @@ open class Request(var method: String, var url: String, val session: Session) {
 
         val client = clientBuilder.build()
         val request = requestBuilder.build()
-
         val (response, duration) = timed {
             client.send(request, BodyHandlers.ofInputStream())
         }
