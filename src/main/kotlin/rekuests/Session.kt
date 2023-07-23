@@ -13,61 +13,23 @@ open class Session : AutoCloseable, Closeable {
 
     val cookieManager = newCookieManager()
 
-    fun rekuest(method: String, url: String, init: Request.() -> Unit): Response =
+    fun rekuest(method: String, url: String, init: Request.() -> Unit = {}): Response =
         Request(method, url, this)
             .apply(init)
             .mergeSession(this)
             .execute()
 
-    fun get(url: String): Response =
-        Request("GET", url, this)
-            .mergeSession(this)
-            .execute()
+    fun get(url: String, init: Request.() -> Unit = {}) = rekuest("GET", url, init)
 
-    fun get(url: String, init: Request.() -> Unit): Response =
-        Request("GET", url, this)
-            .apply(init)
-            .mergeSession(this)
-            .execute()
+    fun post(url: String, init: Request.() -> Unit) = rekuest("POST", url, init)
 
-    fun post(url: String, data: ByteArray, init: Request.() -> Unit): Response =
-        Request("POST", url, this)
-            .apply {
-                this.init()
-                this.data = data
-            }
-            .mergeSession(this)
-            .execute()
+    fun put(url: String, init: Request.() -> Unit) = rekuest("PUT", url, init)
 
-    fun post(url: String, init: Request.() -> Unit): Response =
-        Request("POST", url, this)
-            .apply(init)
-            .mergeSession(this)
-            .execute()
+    fun delete(url: String, init: Request.() -> Unit) = rekuest("DELETE", url, init)
 
-    fun put(url: String, init: Request.() -> Unit): Response =
-        Request("PUT", url, this)
-            .apply(init)
-            .mergeSession(this)
-            .execute()
+    fun head(url: String, init: Request.() -> Unit) = rekuest("HEAD", url, init)
 
-    fun delete(url: String, init: Request.() -> Unit): Response =
-        Request("DELETE", url, this)
-            .apply(init)
-            .mergeSession(this)
-            .execute()
-
-    fun head(url: String, init: Request.() -> Unit): Response =
-        Request("HEAD", url, this)
-            .apply(init)
-            .mergeSession(this)
-            .execute()
-
-    fun options(url: String, init: Request.() -> Unit): Response =
-        Request("OPTIONS", url, this)
-            .apply(init)
-            .mergeSession(this)
-            .execute()
+    fun options(url: String, init: Request.() -> Unit) = rekuest("OPTIONS", url, init)
 
     override fun close() {
         // kill any keepalive sockets

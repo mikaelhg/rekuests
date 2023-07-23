@@ -35,6 +35,9 @@ class DslTests {
                     ctx.status(500)
                 }
             }
+            .get("/redirect") { ctx ->
+                ctx.redirect("/redirect/result")
+            }
             .start(localPort)
     }
 
@@ -50,6 +53,7 @@ class DslTests {
             auth("user", "pass")
             params("a" to "b")
         }
+        Assertions.assertEquals(200, r.statusCode)
     }
 
     @Test
@@ -71,19 +75,12 @@ class DslTests {
         // val json = r.json()["cookies"]?.get("from-my")?.getContent()
     }
 
-    operator fun JsonElement.get(key: String): JsonElement? {
-        return (this as? JsonObject)?.get(key)
-    }
-
-    fun JsonElement.getContent(): String? {
-        return (this as? JsonPrimitive)?.content
-    }
-
     @Test
     fun withData() {
+        val input = byteArrayOf(1, 2, 3, 4, 5)
         val r = rekuests.post("$baseUrl/data/12345") {
             headers["content-type"] = "application/octet-stream"
-            data = byteArrayOf(1, 2, 3, 4, 5)
+            data = input
         }
         Assertions.assertEquals(200, r.statusCode)
     }
@@ -97,6 +94,15 @@ class DslTests {
         Assertions.assertEquals("preconnect", r.links[0]["rel"])
         Assertions.assertEquals("preconnect", r.links[1]["rel"])
         Assertions.assertEquals("preconnect", r.links[2]["rel"])
+    }
+
+    @Test
+    fun redirect() {
+        val r = rekuests.get("$baseUrl/redirect") {
+            followRedirects = false
+        }
+        Assertions.assertTrue(r.isRedirect)
+        Assertions.assertEquals(302, r.statusCode)
     }
 
 }

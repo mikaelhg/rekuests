@@ -1,17 +1,19 @@
 package rekuests
 
 import rekuests.util.Headers
-import rekuests.util.MyAuthenticator
+import rekuests.util.UsernamePasswordAuthenticator
+import rekuests.util.timed
 import java.io.File
 import java.net.HttpCookie
 import java.net.URI
 import java.net.http.HttpClient
+import java.net.http.HttpClient.Redirect.NEVER
+import java.net.http.HttpClient.Redirect.NORMAL
 import java.net.http.HttpRequest
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
-import java.time.Instant
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class Request(var method: String, var url: String, val session: Session) {
@@ -29,6 +31,12 @@ open class Request(var method: String, var url: String, val session: Session) {
     protected val queryParameters = mutableListOf<Pair<String, String>>()
 
     protected val dataFormFields = mutableMapOf<String, String>()
+
+    var followRedirects = true
+
+    var httpVersion = HttpClient.Version.HTTP_2
+
+    var connectTimeout = Duration.ofSeconds(20)
 
     fun headers(vararg headers: Pair<String, String>) {
         headers.forEach { (k, v) -> this.headers[k] = v }
@@ -98,9 +106,9 @@ open class Request(var method: String, var url: String, val session: Session) {
         val uri = URI.create(this.url)
 
         val clientBuilder = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(20))
+                .version(httpVersion)
+                .followRedirects(if (followRedirects) NORMAL else NEVER)
+                .connectTimeout(connectTimeout)
                 .cookieHandler(session.cookieManager)
 
         val requestBuilder = HttpRequest.newBuilder()
@@ -110,20 +118,20 @@ open class Request(var method: String, var url: String, val session: Session) {
         this.headers.forEach { (k, v) -> requestBuilder.header(k, v) }
 
         if (null != this.username && null != this.password) {
-            clientBuilder.authenticator(MyAuthenticator(this.username!!, this.password!!))
+            clientBuilder.authenticator(UsernamePasswordAuthenticator(username!!, password!!))
         }
 
         val client = clientBuilder.build()
         val request = requestBuilder.build()
 
-        val t0 = Instant.now()
-        val response = client.send(request, BodyHandlers.ofInputStream())
-        val t1 = Instant.now()
+        val (response, duration) = timed {
+            client.send(request, BodyHandlers.ofInputStream())
+        }
 
         session.cookieManager.put(uri, response.headers().map())
 
-        return Response(response, session).apply {
-            elapsed = Duration.between(t0, t1)
+        return Response(response, session, this).apply {
+            elapsed = duration
         }
     }
 

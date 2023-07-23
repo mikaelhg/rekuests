@@ -2,15 +2,20 @@ package rekuests
 
 import kotlinx.serialization.json.Json
 import rekuests.util.RekuestException
+import rekuests.util.parseLinkHeaders
 import java.io.InputStream
 import java.net.HttpCookie
 import java.net.http.HttpResponse
 import java.nio.charset.Charset
 import java.time.Duration
+import java.util.stream.Stream
 
 @Suppress("MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
-open class Response(protected val httpResponse: HttpResponse<InputStream>,
-                    protected val session: Session)
+open class Response(
+    protected val httpResponse: HttpResponse<InputStream>,
+    protected val session: Session,
+    protected val request: Request
+)
 {
 
     /**
@@ -104,13 +109,17 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      * If decode_unicode is True, content will be decoded using the best available encoding
      * based on the response.
      */
-    fun iterateContent(chunkSize: Int = 1, decodeUnicode: Boolean = false) { }
+    fun iterateContent(chunkSize: Int = 1) : Stream<ByteArray> {
+        return Stream.empty()
+    }
 
     /**
      * Iterates over the response data, one line at a time. When stream=True is set on the request,
      * this avoids reading the content at once into memory for large responses.
      */
-    fun iterateLines(chunkSize: Int = 512, decodeUnicode: Boolean = false, delimiter: String?) { }
+    fun iterateLines(chunkSize: Int = 512, delimiter: String = "\r\n") : Stream<String> {
+        return Stream.empty()
+    }
 
     /**
      * Returns the json-encoded content of a response, if any.
@@ -124,21 +133,7 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
      *
      * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Link
      */
-    val links by lazy {
-        val replaceChars = charArrayOf(' ', '\'', '"')
-        headers["link"]?.flatMap { it.split(',') }
-            ?.map { l ->
-                val elements = l.trim().split(';')
-                val url = elements[0].substring(1, elements[0].length-1)
-                val map = mutableMapOf("url" to url)
-                elements.listIterator(1).forEach { e ->
-                    val (k, v) = e.split('=', limit = 2)
-                    map[k.trim(*replaceChars)] = v.trim(*replaceChars)
-                }
-                map
-            }
-            ?.toList() ?: emptyList()
-    }
+    val links by lazy { headers["link"]?.let(::parseLinkHeaders) ?: emptyList() }
 
     /**
      * Returns a PreparedRequest for the next request in a redirect chain, if there is one.
@@ -148,9 +143,9 @@ open class Response(protected val httpResponse: HttpResponse<InputStream>,
     /**
      * Returns True if statusCode is less than 400, False if not.
      *
-     * This attribute checks if the status code of the response is between 400 and 600 to see if there was a
-     * client error or a server error. If the status code is between 200 and 400, this will return True.
-     * This is not a check to see if the response code is 200 OK.
+     * This attribute checks if the status code of the response is between 400 and 600 to see
+     * if there was a client error or a server error. If the status code is between 200 and 400,
+     * this will return True.  This is not a check to see if the response code is 200 OK.
      */
     fun ok() = statusCode < 400
 
