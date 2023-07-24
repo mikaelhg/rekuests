@@ -1,6 +1,5 @@
 package rekuests
 
-import kotlinx.serialization.json.Json
 import rekuests.util.RekuestException
 import rekuests.util.parseLinkHeaders
 import java.io.InputStream
@@ -126,7 +125,7 @@ open class Response(
      *
      * @throws SerializationException If the response body does not contain valid json.
      */
-    inline fun <reified T> json(): T = Json.decodeFromString(text)
+    inline fun <reified T> json(): T = TODO("think about JSON a bit")
 
     /**
      * Returns the parsed header links of the response, if any.

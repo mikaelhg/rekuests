@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     kotlin("jvm") version "1.9.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "io.mikael"
@@ -18,7 +19,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
+    // implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.5.1")
+    implementation("com.github.mizosoft.methanol:methanol:1.7.0")
 
     testImplementation(enforcedPlatform("org.slf4j:slf4j-parent:2.0.7"))
     testImplementation(enforcedPlatform("ch.qos.logback:logback-parent:1.4.8"))

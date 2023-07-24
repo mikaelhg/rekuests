@@ -7,34 +7,20 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import rekuests.Auth
 
-class GetTests {
+class GetTests : JavalinBase(25812) {
 
-    private lateinit var engine: Javalin
-
-    private val localPort = 25812
-    private val baseUrl = "http://127.0.0.1:${localPort}"
-
-    @BeforeEach
-    fun beforeEach() {
-        engine = Javalin.create()
-            .get("/cookies") { ctx ->
-                ctx.json(mapOf("cookies" to ctx.cookieMap()))
-            }
-            .get("/headers/link") { ctx ->
-                ctx.status(200)
-                    .header("link", """<https://one.example.com>; rel="preconnect", <https://two.example.com>; rel="preconnect", <https://three.example.com>; rel="preconnect"""")
-                    .result("OK")
-            }
-            .get("/redirect") { ctx ->
-                ctx.redirect("/redirect/result")
-            }
-            .start(localPort)
-    }
-
-    @AfterEach
-    fun afterEach() {
-        engine.stop()
-    }
+    override fun createEngine(): Javalin = Javalin.create()
+        .get("/cookies") { ctx ->
+            ctx.json(mapOf("cookies" to ctx.cookieMap()))
+        }
+        .get("/headers/link") { ctx ->
+            ctx.status(200)
+                .header("link", """<https://one.example.com>; rel="preconnect", <https://two.example.com>; rel="preconnect", <https://three.example.com>; rel="preconnect"""")
+                .result("OK")
+        }
+        .get("/redirect") { ctx ->
+            ctx.redirect("/redirect/result")
+        }
 
     @Test
     fun simpleGet() {
