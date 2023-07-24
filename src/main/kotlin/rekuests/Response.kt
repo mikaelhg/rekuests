@@ -1,3 +1,4 @@
+@file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
 import rekuests.util.RekuestException

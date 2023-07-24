@@ -1,3 +1,4 @@
+@file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
 import rekuests.util.Headers
@@ -11,7 +12,7 @@ open class Session : AutoCloseable, Closeable {
 
     var headers = Headers()
 
-    val cookieManager = newCookieManager()
+    var cookieManager = newCookieManager()
 
     fun rekuest(method: String, url: String, init: Request.() -> Unit = {}): Response =
         Request(method, url, this)

@@ -1,3 +1,4 @@
+@file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
 import rekuests.util.Headers
@@ -18,7 +19,6 @@ import java.net.http.HttpResponse.BodyHandlers
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
 
-@Suppress("MemberVisibilityCanBePrivate")
 open class Request(var method: String, var url: String, val session: Session) {
 
     var headers = Headers()

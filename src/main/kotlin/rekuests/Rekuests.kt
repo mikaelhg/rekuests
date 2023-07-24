@@ -1,3 +1,4 @@
+@file:Suppress("unused")
 package rekuests
 
 fun rekuest(method: String, url: String, init: Request.() -> Unit) = Session().rekuest(method, url, init)
