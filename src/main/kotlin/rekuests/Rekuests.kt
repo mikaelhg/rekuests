@@ -8,6 +8,8 @@ fun post(url: String, init: Request.() -> Unit = {}) = Session().post(url, init)
 
 fun put(url: String, init: Request.() -> Unit = {}) = Session().put(url, init)
 
+fun patch(url: String, init: Request.() -> Unit = {}) = Session().patch(url, init)
+
 fun delete(url: String, init: Request.() -> Unit = {}) = Session().delete(url, init)
 
 fun head(url: String, init: Request.() -> Unit = {}) = Session().head(url, init)

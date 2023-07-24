@@ -25,6 +25,8 @@ open class Session : AutoCloseable, Closeable {
 
     fun put(url: String, init: Request.() -> Unit) = rekuest("PUT", url, init)
 
+    fun patch(url: String, init: Request.() -> Unit) = rekuest("PATCH", url, init)
+
     fun delete(url: String, init: Request.() -> Unit) = rekuest("DELETE", url, init)
 
     fun head(url: String, init: Request.() -> Unit) = rekuest("HEAD", url, init)
