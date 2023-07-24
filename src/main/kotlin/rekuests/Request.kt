@@ -5,6 +5,7 @@ import rekuests.util.UsernamePasswordAuthenticator
 import rekuests.util.noValidateSecurityContext
 import rekuests.util.timed
 import java.io.File
+import java.net.Authenticator
 import java.net.HttpCookie
 import java.net.URI
 import java.net.http.HttpClient
@@ -28,6 +29,8 @@ open class Request(var method: String, var url: String, val session: Session) {
     var username: String? = null
 
     var password: String? = null
+
+    protected var authenticator: Authenticator? = null
 
     protected val queryParameters = mutableListOf<Pair<String, String>>()
 
@@ -76,6 +79,11 @@ open class Request(var method: String, var url: String, val session: Session) {
     fun auth(username: String, password: String) {
         this.username = username
         this.password = password
+        this.authenticator = UsernamePasswordAuthenticator(username, password)
+    }
+
+    fun auth(authenticator: Authenticator) {
+        this.authenticator = authenticator
     }
 
     fun cookie(key: String, value: String) {
@@ -124,9 +132,7 @@ open class Request(var method: String, var url: String, val session: Session) {
 
         this.headers.forEach { (k, v) -> requestBuilder.header(k, v) }
 
-        if (null != this.username && null != this.password) {
-            clientBuilder.authenticator(UsernamePasswordAuthenticator(username!!, password!!))
-        }
+        authenticator?.let(clientBuilder::authenticator)
 
         val client = clientBuilder.build()
         val request = requestBuilder.build()

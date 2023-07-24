@@ -1,5 +1,8 @@
 package rekuests.util
 
+import java.net.http.HttpHeaders
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets.UTF_8
 import java.security.SecureRandom
 import javax.net.ssl.SSLContext
 
@@ -25,4 +28,20 @@ internal fun parseLinkHeaders(headers: List<String>): List<Map<String, String>> 
             map
         }
         .toList()
+}
+
+/**
+ * The standard says ISO-8859-1 but in practise
+ * implementations have switched to UTF-8.
+ */
+val DEFAULT_CHARSET: Charset = UTF_8
+
+fun charsetFrom(headers: HttpHeaders): Charset {
+    val optional = headers.firstValue("content-type")
+    if (optional.isEmpty) return DEFAULT_CHARSET
+    val raw = optional.get()
+    val sci = raw.indexOf(';')
+    val csi = raw.indexOf("charset=", ignoreCase = true)
+    if (sci == -1 || csi == -1 || csi < sci) return DEFAULT_CHARSET
+    return Charset.forName(raw.substring(csi+8))
 }
