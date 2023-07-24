@@ -1,14 +1,13 @@
 package rekuests.tests
 
 import io.javalin.Javalin
-import kotlinx.serialization.json.*
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import rekuests.Auth
 
-class DslTests {
+class GetTests {
 
     private lateinit var engine: Javalin
 
@@ -26,15 +25,6 @@ class DslTests {
                     .header("link", """<https://one.example.com>; rel="preconnect", <https://two.example.com>; rel="preconnect", <https://three.example.com>; rel="preconnect"""")
                     .result("OK")
             }
-            .post("/data/12345") { ctx ->
-                if (ctx.contentType() == "application/octet-stream"
-                    && ctx.bodyAsBytes().contentEquals(byteArrayOf(1, 2, 3, 4, 5)))
-                {
-                    ctx.status(200)
-                } else {
-                    ctx.status(500)
-                }
-            }
             .get("/redirect") { ctx ->
                 ctx.redirect("/redirect/result")
             }
@@ -47,7 +37,7 @@ class DslTests {
     }
 
     @Test
-    fun testDsl() {
+    fun simpleGet() {
         val url = "${baseUrl}/cookies"
         val r = rekuests.get(url) {
             auth("user", "pass")
@@ -73,16 +63,6 @@ class DslTests {
         r = rekuests.get("$baseUrl/cookies")
         Assertions.assertEquals("""{"cookies":{}}""", r.text)
         // val json = r.json()["cookies"]?.get("from-my")?.getContent()
-    }
-
-    @Test
-    fun withData() {
-        val input = byteArrayOf(1, 2, 3, 4, 5)
-        val r = rekuests.post("$baseUrl/data/12345") {
-            headers["content-type"] = "application/octet-stream"
-            data = input
-        }
-        Assertions.assertEquals(200, r.statusCode)
     }
 
     @Test
