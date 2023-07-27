@@ -1,4 +1,4 @@
-package rekuests.util
+package rekuests.auth
 
 import java.net.Authenticator
 import java.net.PasswordAuthentication

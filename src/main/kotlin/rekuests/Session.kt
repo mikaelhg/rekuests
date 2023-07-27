@@ -1,6 +1,7 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
+import rekuests.auth.BasicAuth
 import rekuests.util.Headers
 import java.io.Closeable
 import java.net.CookieManager
@@ -8,7 +9,7 @@ import java.net.CookiePolicy
 
 open class Session : AutoCloseable, Closeable {
 
-    var auth: Auth? = null
+    var auth: BasicAuth? = null
 
     var headers = Headers()
 
@@ -17,7 +18,7 @@ open class Session : AutoCloseable, Closeable {
     fun rekuest(method: String, url: String, init: Request.() -> Unit = {}): Response =
         Request(method, url, this)
             .apply(init)
-            .mergeSession(this)
+            .mergeSession()
             .execute()
 
     fun get(url: String, init: Request.() -> Unit = {}) = rekuest("GET", url, init)
@@ -41,5 +42,3 @@ open class Session : AutoCloseable, Closeable {
     protected open fun newCookieManager() = CookieManager(null, CookiePolicy.ACCEPT_ALL)
 
 }
-
-typealias Auth = Pair<String, String>

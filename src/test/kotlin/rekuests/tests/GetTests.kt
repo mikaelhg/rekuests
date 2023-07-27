@@ -1,11 +1,9 @@
 package rekuests.tests
 
 import io.javalin.Javalin
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import rekuests.Auth
+import rekuests.auth.BasicAuth
 
 class GetTests : JavalinBase(25812) {
 
@@ -24,22 +22,18 @@ class GetTests : JavalinBase(25812) {
 
     @Test
     fun simpleGet() {
-        val url = "${baseUrl}/cookies"
-        val r = rekuests.get(url) {
-            auth("user", "pass")
-            params("a" to "b")
-        }
+        val r = rekuests.get("${baseUrl}/cookies")
         Assertions.assertEquals(200, r.statusCode)
     }
 
     @Test
     fun sessionTest() {
         val s = rekuests.Session().apply {
-            auth = Auth("asd", "asf")
+            auth = BasicAuth("asd", "asf")
             auth = "user" to "pass"
             headers["foo"] = "bar"
             headers.update("x-test", "true")
-            headers.update("x-test" to "true")
+            headers.update("x-test" to "false")
         }
         var r = s.get("$baseUrl/cookies") {
             cookie("from-my", "browser")

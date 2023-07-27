@@ -2,7 +2,7 @@
 package rekuests
 
 import rekuests.util.Headers
-import rekuests.util.UsernamePasswordAuthenticator
+import rekuests.auth.UsernamePasswordAuthenticator
 import rekuests.util.noValidateSecurityContext
 import rekuests.util.timed
 import java.io.File
@@ -109,48 +109,47 @@ open class Request(var method: String, var url: String, val session: Session) {
         cookies(cookies.toList())
     }
 
-    internal fun mergeSession(s: Session) = apply {
-        headers = Headers().update(s.headers).update(headers)
+    protected fun mergeSession() = apply {
+        headers = Headers().update(session.headers).update(headers)
     }
 
-    internal fun execute(): Response {
+    protected fun execute(): Response {
         val uri = URI.create(url)
-        val httpClient = httpClient()
-        val httpRequest = httpRequest(uri)
-        val (response, duration) = timed {
-            httpClient.send(httpRequest, BodyHandlers.ofInputStream())
+        val (httpResponse, duration) = timed {
+            httpClient().send(httpRequest(uri), BodyHandlers.ofInputStream())
         }
-        session.cookieManager.put(uri, response.headers().map())
-
-        return Response(response, session, this).apply {
+        session.cookieManager.put(uri, httpResponse.headers().map())
+        return Response(httpResponse, session, this).apply {
             elapsed = duration
         }
     }
 
-    internal fun httpRequest(uri: URI) = HttpRequest.newBuilder()
-        .method(method, bodyPublisher())
-        .uri(uri)
-        .apply { headers.forEach(::header) }
-        .build()
+    protected fun httpRequest(uri: URI): HttpRequest =
+        HttpRequest.newBuilder()
+            .method(method, bodyPublisher())
+            .uri(uri)
+            .apply { headers.forEach(::header) }
+            .build()
 
-    internal fun httpClient() = HttpClient.newBuilder()
-        .version(httpVersion)
-        .followRedirects(if (followRedirects) NORMAL else NEVER)
-        .connectTimeout(connectTimeout)
-        .cookieHandler(session.cookieManager)
-        .apply {
-            if (!verifyCertificate) {
-                sslContext(noValidateSecurityContext)
+    protected fun httpClient(): HttpClient =
+        HttpClient.newBuilder()
+            .version(httpVersion)
+            .followRedirects(if (followRedirects) NORMAL else NEVER)
+            .connectTimeout(connectTimeout)
+            .cookieHandler(session.cookieManager)
+            .apply {
+                if (!verifyCertificate) {
+                    sslContext(noValidateSecurityContext)
+                }
+                authenticator?.let(::authenticator)
             }
-            authenticator?.let(::authenticator)
-        }
-        .build()
+            .build()
 
     /*
      * https://mizosoft.github.io/methanol/multipart_and_forms/
      */
-    protected fun bodyPublisher(): BodyPublisher {
-        return if (files.isNotEmpty() && dataFormFields.isNotEmpty()) {
+    protected fun bodyPublisher(): BodyPublisher =
+        if (files.isNotEmpty() && dataFormFields.isNotEmpty()) {
             BodyPublishers.noBody() // XXX: FIXME mime multipart body
         } else if (dataFormFields.isNotEmpty()) {
             BodyPublishers.noBody() // XXX: FIXME mime multipart body
@@ -159,6 +158,5 @@ open class Request(var method: String, var url: String, val session: Session) {
         } else {
             BodyPublishers.noBody()
         }
-    }
 
 }
