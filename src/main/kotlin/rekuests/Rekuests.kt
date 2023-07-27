@@ -1,18 +1,27 @@
 @file:Suppress("unused")
 package rekuests
 
-fun rekuest(method: String, url: String, init: Request.() -> Unit) = Session().rekuest(method, url, init)
+import rekuests.util.BaseRequest
 
-fun get(url: String, init: Request.() -> Unit = {}) = Session().get(url, init)
+fun rekuest(method: String, url: String, init: BaseRequest.() -> Unit) = Session().rekuest(method, url, init)
 
-fun post(url: String, init: Request.() -> Unit = {}) = Session().post(url, init)
+/** Perform a HTTP GET request. */
+fun get(url: String, init: BaseRequest.() -> Unit = {}) = Session().get(url, init)
 
-fun put(url: String, init: Request.() -> Unit = {}) = Session().put(url, init)
+/** Perform a HTTP POST request. */
+fun post(url: String, init: BaseRequest.() -> Unit = {}) = Session().post(url, init)
 
-fun patch(url: String, init: Request.() -> Unit = {}) = Session().patch(url, init)
+/** Perform a HTTP PUT request. */
+fun put(url: String, init: BaseRequest.() -> Unit = {}) = Session().put(url, init)
 
-fun delete(url: String, init: Request.() -> Unit = {}) = Session().delete(url, init)
+/** Perform a HTTP PATCH request. */
+fun patch(url: String, init: BaseRequest.() -> Unit = {}) = Session().patch(url, init)
 
-fun head(url: String, init: Request.() -> Unit = {}) = Session().head(url, init)
+/** Perform a HTTP DELETE request. */
+fun delete(url: String, init: BaseRequest.() -> Unit = {}) = Session().delete(url, init)
 
-fun options(url: String, init: Request.() -> Unit = {}) = Session().options(url, init)
+/** Perform a HTTP HEAD request. */
+fun head(url: String, init: BaseRequest.() -> Unit = {}) = Session().head(url, init)
+
+/** Perform a HTTP OPTIONS request. */
+fun options(url: String, init: BaseRequest.() -> Unit = {}) = Session().options(url, init)
