@@ -2,6 +2,7 @@
 package rekuests
 
 import rekuests.auth.BasicAuth
+import rekuests.util.BaseRequest
 import rekuests.util.Headers
 import java.io.Closeable
 import java.net.CookieManager
@@ -15,25 +16,25 @@ open class Session : AutoCloseable, Closeable {
 
     var cookieManager = newCookieManager()
 
-    fun rekuest(method: String, url: String, init: Request.() -> Unit = {}): Response =
+    fun rekuest(method: String, url: String, init: BaseRequest.() -> Unit = {}): Response =
         Request(method, url, this)
             .apply(init)
             .mergeSession()
             .execute()
 
-    fun get(url: String, init: Request.() -> Unit = {}) = rekuest("GET", url, init)
+    fun get(url: String, init: BaseRequest.() -> Unit = {}) = rekuest("GET", url, init)
 
-    fun post(url: String, init: Request.() -> Unit) = rekuest("POST", url, init)
+    fun post(url: String, init: BaseRequest.() -> Unit) = rekuest("POST", url, init)
 
-    fun put(url: String, init: Request.() -> Unit) = rekuest("PUT", url, init)
+    fun put(url: String, init: BaseRequest.() -> Unit) = rekuest("PUT", url, init)
 
-    fun patch(url: String, init: Request.() -> Unit) = rekuest("PATCH", url, init)
+    fun patch(url: String, init: BaseRequest.() -> Unit) = rekuest("PATCH", url, init)
 
-    fun delete(url: String, init: Request.() -> Unit) = rekuest("DELETE", url, init)
+    fun delete(url: String, init: BaseRequest.() -> Unit) = rekuest("DELETE", url, init)
 
-    fun head(url: String, init: Request.() -> Unit) = rekuest("HEAD", url, init)
+    fun head(url: String, init: BaseRequest.() -> Unit) = rekuest("HEAD", url, init)
 
-    fun options(url: String, init: Request.() -> Unit) = rekuest("OPTIONS", url, init)
+    fun options(url: String, init: BaseRequest.() -> Unit) = rekuest("OPTIONS", url, init)
 
     override fun close() {
         // kill any keepalive sockets
