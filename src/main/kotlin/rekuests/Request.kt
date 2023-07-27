@@ -1,18 +1,21 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
+import com.github.mizosoft.methanol.Methanol
+import com.github.mizosoft.methanol.MultipartBodyPublisher
 import rekuests.util.BaseRequest
 import rekuests.util.Headers
 import rekuests.util.noValidateSecurityContext
 import rekuests.util.timed
 import java.net.URI
-import java.net.http.HttpClient
+import java.net.URLEncoder
 import java.net.http.HttpClient.Redirect.NEVER
 import java.net.http.HttpClient.Redirect.NORMAL
 import java.net.http.HttpRequest
 import java.net.http.HttpRequest.BodyPublisher
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
+import java.nio.charset.StandardCharsets.UTF_8
 
 open class Request(
     var method: String, url: String, session: Session
@@ -60,17 +63,17 @@ open class Request(
             .apply { headers.forEach(::header) }
             .build()
 
-    protected fun httpClient(): HttpClient =
-        HttpClient.newBuilder()
+    protected fun httpClient(): Methanol =
+        Methanol.newBuilder()
             .version(httpVersion)
             .followRedirects(if (followRedirects) NORMAL else NEVER)
             .connectTimeout(connectTimeout)
             .cookieHandler(session.cookieManager)
             .apply {
+                authenticator?.let(it::authenticator)
                 if (!verifyCertificate) {
-                    sslContext(noValidateSecurityContext)
+                    it.sslContext(noValidateSecurityContext)
                 }
-                authenticator?.let(::authenticator)
             }
             .build()
 
@@ -78,10 +81,15 @@ open class Request(
      * https://mizosoft.github.io/methanol/multipart_and_forms/
      */
     protected fun bodyPublisher(): BodyPublisher =
-        if (files.isNotEmpty() && dataFormFields.isNotEmpty()) {
-            BodyPublishers.noBody() // XXX: FIXME mime multipart body
+        if (files.isNotEmpty()) {
+            MultipartBodyPublisher.newBuilder().apply {
+                files.forEach { (name, file) -> filePart(name, file.toPath()) }
+            }.build()
         } else if (dataFormFields.isNotEmpty()) {
-            BodyPublishers.noBody() // XXX: FIXME mime multipart body
+            dataFormFields
+                .map { (k, v) -> k + "=" + URLEncoder.encode(v, UTF_8) }
+                .joinToString("&")
+                .let(BodyPublishers::ofString)
         } else if (null != data) {
             BodyPublishers.ofByteArray(data)
         } else {
