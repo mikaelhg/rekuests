@@ -37,7 +37,7 @@ open class Session : AutoCloseable, Closeable {
     fun options(url: String, init: BaseRequest.() -> Unit) = rekuest("OPTIONS", url, init)
 
     override fun close() {
-        // kill any keepalive sockets
+        TODO("add socket and client management")
     }
 
     protected open fun newCookieManager() = CookieManager(null, CookiePolicy.ACCEPT_ALL)
