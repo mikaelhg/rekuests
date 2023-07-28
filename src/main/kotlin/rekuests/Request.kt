@@ -1,6 +1,7 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
+import com.github.mizosoft.methanol.FormBodyPublisher
 import com.github.mizosoft.methanol.Methanol
 import com.github.mizosoft.methanol.MultipartBodyPublisher
 import rekuests.util.BaseRequest
@@ -8,14 +9,12 @@ import rekuests.util.Headers
 import rekuests.util.noValidateSecurityContext
 import rekuests.util.timed
 import java.net.URI
-import java.net.URLEncoder
 import java.net.http.HttpClient.Redirect.NEVER
 import java.net.http.HttpClient.Redirect.NORMAL
 import java.net.http.HttpRequest
 import java.net.http.HttpRequest.BodyPublisher
 import java.net.http.HttpRequest.BodyPublishers
 import java.net.http.HttpResponse.BodyHandlers
-import java.nio.charset.StandardCharsets.UTF_8
 
 open class Request(
     var method: String, url: String, session: Session
@@ -81,19 +80,19 @@ open class Request(
      * https://mizosoft.github.io/methanol/multipart_and_forms/
      */
     protected fun bodyPublisher(): BodyPublisher =
-        if (files.isNotEmpty()) {
-            MultipartBodyPublisher.newBuilder().apply {
-                files.forEach { (name, file) -> filePart(name, file.toPath()) }
-            }.build()
-        } else if (dataFormFields.isNotEmpty()) {
-            dataFormFields
-                .map { (k, v) -> k + "=" + URLEncoder.encode(v, UTF_8) }
-                .joinToString("&")
-                .let(BodyPublishers::ofString)
-        } else if (null != data) {
-            BodyPublishers.ofByteArray(data)
-        } else {
-            BodyPublishers.noBody()
+        when {
+            files.isNotEmpty() -> {
+                MultipartBodyPublisher.newBuilder().apply {
+                    files.forEach { (name, file) -> filePart(name, file.toPath()) }
+                }.build()
+            }
+            dataFormFields.isNotEmpty() -> {
+                FormBodyPublisher.newBuilder().apply {
+                    dataFormFields.forEach(::query)
+                }.build()
+            }
+            null != data -> BodyPublishers.ofByteArray(data)
+            else -> BodyPublishers.noBody()
         }
 
 }

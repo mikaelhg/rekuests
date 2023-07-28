@@ -17,7 +17,6 @@ class PostTests : JavalinBase(25813) {
             }
         }
         .post("/data/abcdef") { ctx ->
-            println(ctx.formParamMap())
             if (ctx.contentType() == "application/x-www-form-urlencoded"
                 && ctx.formParam("a") == "b"
                 && ctx.formParam("c") == "d"
@@ -26,6 +25,13 @@ class PostTests : JavalinBase(25813) {
                 ctx.status(200).json(ctx.formParamMap())
             } else {
                 ctx.status(500).json(ctx.formParamMap())
+            }
+        }
+        .post("/header/no-content-type") { ctx ->
+            if (ctx.contentType() == null) {
+                ctx.status(200)
+            } else {
+                ctx.status(500)
             }
         }
 
@@ -42,9 +48,14 @@ class PostTests : JavalinBase(25813) {
     @Test
     fun withFormData() {
         val r = rekuests.post("$baseUrl/data/abcdef") {
-            headers["content-type"] = "application/x-www-form-urlencoded"
             data("a" to "b", "c" to "d", "e" to "f")
         }
+        Assertions.assertEquals(200, r.statusCode)
+    }
+
+    @Test
+    fun withNoData() {
+        val r = rekuests.post("$baseUrl/header/no-content-type")
         Assertions.assertEquals(200, r.statusCode)
     }
 
