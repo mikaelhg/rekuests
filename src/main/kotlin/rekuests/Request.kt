@@ -46,9 +46,7 @@ open class Request(
     }
 
     internal fun execute(): Response {
-        val uri = UrlBuilder.fromString(url).let {
-            queryParameters.fold(it) { b, (k, v) -> b.addParameter(k, v) }
-        }.toUri()
+        val uri = uri()
         val (httpResponse, duration) = timed {
             httpClient().send(httpRequest(uri), BodyHandlers.ofInputStream())
         }
@@ -57,6 +55,11 @@ open class Request(
             elapsed = duration
         }
     }
+
+    protected fun uri(): URI =
+        UrlBuilder.fromString(url).let {
+            queryParameters.fold(it) { b, (k, v) -> b.addParameter(k, v) }
+        }.toUri()
 
     protected fun httpRequest(uri: URI): HttpRequest =
         HttpRequest.newBuilder()
