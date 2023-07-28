@@ -19,6 +19,18 @@ class GetTests : JavalinBase(25812) {
         .get("/redirect") { ctx ->
             ctx.redirect("/redirect/result")
         }
+        .get("/params") { ctx ->
+            println(ctx.queryString())
+            println(ctx.queryParamMap())
+            if (ctx.queryParam("a") == "b"
+                && ctx.queryParam("c") == "d"
+                && ctx.queryParam("e") == "f")
+            {
+                ctx.status(200)
+            } else {
+                ctx.status(500)
+            }
+        }
 
     @Test
     fun simpleGet() {
@@ -63,6 +75,14 @@ class GetTests : JavalinBase(25812) {
         }
         Assertions.assertTrue(r.isRedirect)
         Assertions.assertEquals(302, r.statusCode)
+    }
+
+    @Test
+    fun parameters() {
+        val r = rekuests.get("$baseUrl/params") {
+            params("a" to "b", "c" to "d", "e" to "f")
+        }
+        Assertions.assertEquals(200, r.statusCode)
     }
 
 }

@@ -4,6 +4,7 @@ package rekuests
 import com.github.mizosoft.methanol.FormBodyPublisher
 import com.github.mizosoft.methanol.Methanol
 import com.github.mizosoft.methanol.MultipartBodyPublisher
+import io.mikael.urlbuilder.UrlBuilder
 import rekuests.util.BaseRequest
 import rekuests.util.Headers
 import rekuests.util.noValidateSecurityContext
@@ -45,7 +46,9 @@ open class Request(
     }
 
     internal fun execute(): Response {
-        val uri = URI.create(url)
+        val uri = UrlBuilder.fromString(url).let {
+            queryParameters.fold(it) { b, (k, v) -> b.addParameter(k, v) }
+        }.toUri()
         val (httpResponse, duration) = timed {
             httpClient().send(httpRequest(uri), BodyHandlers.ofInputStream())
         }
