@@ -11,6 +11,13 @@ class GetTests : JavalinBase(25812) {
         .get("/cookies") { ctx ->
             ctx.json(mapOf("cookies" to ctx.cookieMap()))
         }
+        .get("/cookies/ab") { ctx ->
+            if (ctx.cookie("a") == "b") {
+                ctx.status(200).cookie("c", "d")
+            } else {
+                ctx.status(500)
+            }
+        }
         .get("/headers/link") { ctx ->
             ctx.status(200)
                 .header("link", """<https://one.example.com>; rel="preconnect", <https://two.example.com>; rel="preconnect", <https://three.example.com>; rel="preconnect"""")
@@ -20,8 +27,6 @@ class GetTests : JavalinBase(25812) {
             ctx.redirect("/redirect/result")
         }
         .get("/params") { ctx ->
-            println(ctx.queryString())
-            println(ctx.queryParamMap())
             if (ctx.queryParam("a") == "b"
                 && ctx.queryParam("c") == "d"
                 && ctx.queryParam("e") == "f")
@@ -83,6 +88,16 @@ class GetTests : JavalinBase(25812) {
             params("a" to "b", "c" to "d", "e" to "f")
         }
         Assertions.assertEquals(200, r.statusCode)
+    }
+
+    @Test
+    fun cookies() {
+        val r = rekuests.get("$baseUrl/cookies/ab") {
+            cookie("a", "b")
+        }
+        Assertions.assertEquals(200, r.statusCode)
+        Assertions.assertEquals("c", r.cookies[1].name)
+        Assertions.assertEquals("d", r.cookies[1].value)
     }
 
 }
