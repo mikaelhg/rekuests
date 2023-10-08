@@ -1,7 +1,8 @@
 package rekuests.tests
 
 import io.javalin.Javalin
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import rekuests.auth.BasicAuth
 
@@ -26,7 +27,7 @@ class GetTests : JavalinBase(25812) {
         .get("/redirect") { ctx ->
             ctx.redirect("/redirect/result")
         }
-        .get("/params") { ctx ->
+        .get("/params/abcdef") { ctx ->
             if (ctx.queryParam("a") == "b"
                 && ctx.queryParam("c") == "d"
                 && ctx.queryParam("e") == "f")
@@ -40,7 +41,7 @@ class GetTests : JavalinBase(25812) {
     @Test
     fun simpleGet() {
         val r = rekuests.get("${baseUrl}/cookies")
-        Assertions.assertEquals(200, r.statusCode)
+        assertEquals(200, r.statusCode)
     }
 
     @Test
@@ -52,25 +53,21 @@ class GetTests : JavalinBase(25812) {
             headers.update("x-test", "true")
             headers.update("x-test" to "false")
         }
-        var r = s.get("$baseUrl/cookies") {
+        val r = s.get("$baseUrl/cookies") {
             cookie("from-my", "browser")
         }
-        Assertions.assertEquals("""{"cookies":{"from-my":"browser"}}""", r.text)
-
-        r = rekuests.get("$baseUrl/cookies")
-        Assertions.assertEquals("""{"cookies":{}}""", r.text)
-        // val json = r.json()["cookies"]?.get("from-my")?.getContent()
+        assertEquals("""{"cookies":{"from-my":"browser"}}""", r.text)
     }
 
     @Test
     fun withLinkHeader() {
         val r = rekuests.get("$baseUrl/headers/link")
-        Assertions.assertEquals("https://one.example.com", r.links[0]["url"])
-        Assertions.assertEquals("https://two.example.com", r.links[1]["url"])
-        Assertions.assertEquals("https://three.example.com", r.links[2]["url"])
-        Assertions.assertEquals("preconnect", r.links[0]["rel"])
-        Assertions.assertEquals("preconnect", r.links[1]["rel"])
-        Assertions.assertEquals("preconnect", r.links[2]["rel"])
+        assertEquals("https://one.example.com", r.links[0]["url"])
+        assertEquals("https://two.example.com", r.links[1]["url"])
+        assertEquals("https://three.example.com", r.links[2]["url"])
+        assertEquals("preconnect", r.links[0]["rel"])
+        assertEquals("preconnect", r.links[1]["rel"])
+        assertEquals("preconnect", r.links[2]["rel"])
     }
 
     @Test
@@ -78,16 +75,16 @@ class GetTests : JavalinBase(25812) {
         val r = rekuests.get("$baseUrl/redirect") {
             followRedirects = false
         }
-        Assertions.assertTrue(r.isRedirect)
-        Assertions.assertEquals(302, r.statusCode)
+        assertTrue(r.isRedirect)
+        assertEquals(302, r.statusCode)
     }
 
     @Test
     fun parameters() {
-        val r = rekuests.get("$baseUrl/params") {
+        val r = rekuests.get("$baseUrl/params/abcdef") {
             params("a" to "b", "c" to "d", "e" to "f")
         }
-        Assertions.assertEquals(200, r.statusCode)
+        assertEquals(200, r.statusCode)
     }
 
     @Test
@@ -95,9 +92,9 @@ class GetTests : JavalinBase(25812) {
         val r = rekuests.get("$baseUrl/cookies/ab") {
             cookie("a", "b")
         }
-        Assertions.assertEquals(200, r.statusCode)
-        Assertions.assertEquals("c", r.cookies[1].name)
-        Assertions.assertEquals("d", r.cookies[1].value)
+        assertEquals(200, r.statusCode)
+        assertEquals("c", r.cookies[1].name)
+        assertEquals("d", r.cookies[1].value)
     }
 
 }

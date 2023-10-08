@@ -1,10 +1,10 @@
 # rekuests
 
-The Python [requests](https://requests.readthedocs.io/) library for Kotlin.
+A port of the Python [requests](https://requests.readthedocs.io/) library to Kotlin.
 
 Under construction.
 
-\[Imagine a '90s Geocities animated "Under construction" GIF here.\]
+\[Imagine a '90s GeoCities dancing banana "Under construction" GIF here.\]
 
 ```kotlin
 import rekuests
