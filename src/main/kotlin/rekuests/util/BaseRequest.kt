@@ -6,6 +6,7 @@ import rekuests.auth.UsernamePasswordAuthenticator
 import java.io.File
 import java.net.Authenticator
 import java.net.HttpCookie
+import java.net.ProxySelector
 import java.net.URI
 import java.net.http.HttpClient
 import java.nio.charset.StandardCharsets
@@ -34,7 +35,9 @@ abstract class BaseRequest(var url: String, val session: Session) {
 
     var connectTimeout: Duration = Duration.ofSeconds(20)
 
-    val verifyCertificate = true
+    var verifyCertificate = true
+
+    var proxySelector = ProxySelector.getDefault()
 
     fun headers(vararg headers: Pair<String, String>) {
         headers.forEach { (k, v) -> this.headers[k] = v }
@@ -70,12 +73,12 @@ abstract class BaseRequest(var url: String, val session: Session) {
         this.authenticator = authenticator
     }
 
-    fun cookie(key: String, value: String) {
+    fun cookie(key: String, value: String, path: String = "/", secure: Boolean = false) {
         val uri = URI.create(url)
         val cookie = HttpCookie(key, value).apply {
-            path = "/"
-            domain = uri.host
-            secure = false
+            this.path = path
+            this.domain = uri.host
+            this.secure = secure
         }
         session.cookieManager.cookieStore.add(uri, cookie)
     }

@@ -9,6 +9,7 @@ import rekuests.util.BaseRequest
 import rekuests.util.Headers
 import rekuests.util.noValidateSecurityContext
 import rekuests.util.timed
+import java.net.ProxySelector
 import java.net.URI
 import java.net.http.HttpClient.Redirect.NEVER
 import java.net.http.HttpClient.Redirect.NORMAL
@@ -34,7 +35,7 @@ open class Request(
     }
 
     override fun params(params: Map<String, String>) {
-        params.entries.forEach { (k, v) -> this.queryParameters.add(Pair(k, v)) }
+        params.forEach { (k, v) -> this.queryParameters.add(Pair(k, v)) }
     }
 
     override fun params(vararg params: Pair<String, String>) {
@@ -48,7 +49,9 @@ open class Request(
     internal fun execute(): Response {
         val uri = uri()
         val (httpResponse, duration) = timed {
-            httpClient().send(httpRequest(uri), BodyHandlers.ofInputStream())
+            httpClient().use {
+                it.send(httpRequest(uri), BodyHandlers.ofInputStream())
+            }
         }
         session.cookieManager.put(uri, httpResponse.headers().map())
         return Response(httpResponse, session, this).apply {
@@ -74,6 +77,7 @@ open class Request(
             .followRedirects(if (followRedirects) NORMAL else NEVER)
             .connectTimeout(connectTimeout)
             .cookieHandler(session.cookieManager)
+            .proxy(proxySelector)
             .apply {
                 authenticator?.let(it::authenticator)
                 if (!verifyCertificate) {

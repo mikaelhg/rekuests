@@ -1,6 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_20
+import org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.IGNORE
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
     `java-library`
-    kotlin("jvm") version "1.9.10"
+    kotlin("jvm") version "1.9.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -9,7 +13,7 @@ version = "1.0-SNAPSHOT"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 

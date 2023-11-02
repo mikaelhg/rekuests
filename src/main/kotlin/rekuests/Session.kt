@@ -6,7 +6,7 @@ import rekuests.util.BaseRequest
 import rekuests.util.Headers
 import java.io.Closeable
 import java.net.CookieManager
-import java.net.CookiePolicy
+import java.net.CookiePolicy.ACCEPT_ALL
 
 open class Session : AutoCloseable, Closeable {
 
@@ -14,7 +14,7 @@ open class Session : AutoCloseable, Closeable {
 
     var headers = Headers()
 
-    var cookieManager = newCookieManager()
+    val cookieManager by lazy { newCookieManager() }
 
     fun rekuest(method: String, url: String, init: BaseRequest.() -> Unit = {}): Response =
         Request(method, url, this)
@@ -40,6 +40,6 @@ open class Session : AutoCloseable, Closeable {
         TODO("add socket and client management")
     }
 
-    protected open fun newCookieManager() = CookieManager(null, CookiePolicy.ACCEPT_ALL)
+    protected open fun newCookieManager() = CookieManager(null, ACCEPT_ALL)
 
 }
