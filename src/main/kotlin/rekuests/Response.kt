@@ -110,7 +110,7 @@ open class Response(
      * based on the response.
      */
     fun iterateContent(chunkSize: Int = 1) : Stream<ByteArray> {
-        return Stream.empty()
+        TODO("implement method")
     }
 
     /**
@@ -118,7 +118,7 @@ open class Response(
      * this avoids reading the content at once into memory for large responses.
      */
     fun iterateLines(chunkSize: Int = 512, delimiter: String = "\r\n") : Stream<String> {
-        return Stream.empty()
+        TODO("implement method")
     }
 
     /**
@@ -154,7 +154,9 @@ open class Response(
      * @throws RekuestException
      */
     @Throws(RekuestException::class)
-    fun raiseForStatus() { }
+    fun raiseForStatus() {
+        TODO("implement method")
+    }
 
     /**
      * File-like object representation of response (for advanced usage).
