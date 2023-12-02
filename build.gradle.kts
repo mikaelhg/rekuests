@@ -36,8 +36,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    testImplementation("io.javalin:javalin:5.6.1")
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    testImplementation("io.javalin:javalin:5.6.3")
+    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.0.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.4.0")
