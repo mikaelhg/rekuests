@@ -109,8 +109,22 @@ open class Response(
      * If decode_unicode is True, content will be decoded using the best available encoding
      * based on the response.
      */
-    fun iterateContent(chunkSize: Int = 1) : Stream<ByteArray> {
-        TODO("implement method")
+    fun iterateContent(chunkSize: Int = 1024): Stream<ByteArray> =
+        httpResponse.body().toByteArrayStream(chunkSize)
+
+    fun InputStream.toByteArrayStream(chunkSize: Int = 1024): Stream<ByteArray> =
+        Stream.generate { readChunk(chunkSize) }.takeWhile { it.isNotEmpty() }
+
+    private fun InputStream.readChunk(chunkSize: Int): ByteArray {
+        val chunk = ByteArray(chunkSize)
+        val bytesRead = this.read(chunk)
+        return if (bytesRead == -1) {
+            ByteArray(0)
+        } else if (bytesRead < chunkSize) {
+            chunk.copyOf(bytesRead)
+        } else {
+            chunk
+        }
     }
 
     /**
@@ -163,7 +177,7 @@ open class Response(
      * Use of raw requires that stream=True be set on the request.
      * This requirement does not apply for use internally to Requests.
      */
-    fun raw() = httpResponse
+    fun raw(): HttpResponse<InputStream> = httpResponse
 
     /**
      * Textual reason of responded HTTP Status, e.g. “Not Found” or “OK”.
