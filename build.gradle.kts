@@ -23,6 +23,7 @@ dependencies {
 
     implementation("com.github.mizosoft.methanol:methanol:1.8.2")
     implementation("io.mikael:urlbuilder:2.0.9")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.19.0")
 
     testImplementation(enforcedPlatform("org.slf4j:slf4j-parent:2.0.17"))
     testImplementation(enforcedPlatform("ch.qos.logback:logback-parent:1.5.18"))
@@ -34,7 +35,6 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testImplementation("io.javalin:javalin:6.6.0")
-    testImplementation("com.fasterxml.jackson.core:jackson-databind:2.19.0")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.17.0")

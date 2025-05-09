@@ -1,6 +1,7 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused")
 package rekuests
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import rekuests.util.RekuestException
 import rekuests.util.parseLinkHeaders
 import java.io.BufferedReader
@@ -11,6 +12,7 @@ import java.net.http.HttpResponse
 import java.nio.charset.Charset
 import java.time.Duration
 import java.util.stream.Stream
+
 
 @Suppress("MemberVisibilityCanBePrivate", "UNUSED_PARAMETER")
 open class Response(
@@ -152,7 +154,9 @@ open class Response(
      *
      * @throws SerializationException If the response body does not contain valid json.
      */
-    inline fun <reified T> json(): T = TODO("think about JSON a bit")
+    inline fun <reified T> json(): T = raw().body().use {
+        ObjectMapper().readValue<T>(it, T::class.java)
+    }
 
     /**
      * Returns the parsed header links of the response, if any.
