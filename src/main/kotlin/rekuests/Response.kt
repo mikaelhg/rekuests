@@ -3,7 +3,9 @@ package rekuests
 
 import rekuests.util.RekuestException
 import rekuests.util.parseLinkHeaders
+import java.io.BufferedReader
 import java.io.InputStream
+import java.io.InputStreamReader
 import java.net.HttpCookie
 import java.net.http.HttpResponse
 import java.nio.charset.Charset
@@ -49,7 +51,7 @@ open class Response(
     /**
      * Content of the response, in bytes.
      */
-    val content: ByteArray by lazy { httpResponse.body().readAllBytes() }
+    val content: ByteArray by lazy { httpResponse.body().use { it.readAllBytes() } }
 
     /**
      * A CookieJar of Cookies the server sent back.
@@ -100,20 +102,16 @@ open class Response(
      * Iterates over the response data. When stream=True is set on the request, this avoids reading
      * the content at once into memory for large responses. The chunk size is the number of bytes
      * it should read into memory.
+     *
      * This is not necessarily the length of each item returned as decoding can take place.
-     *
-     * chunk_size must be of type int or None. A value of None will function differently depending
-     * on the value of stream. stream=True will read data as it arrives in whatever size the chunks
-     * are received. If stream=False, data is returned as a single chunk.
-     *
-     * If decode_unicode is True, content will be decoded using the best available encoding
-     * based on the response.
      */
     fun iterateContent(chunkSize: Int = 1024): Stream<ByteArray> =
         httpResponse.body().toByteArrayStream(chunkSize)
 
     fun InputStream.toByteArrayStream(chunkSize: Int = 1024): Stream<ByteArray> =
-        Stream.generate { readChunk(chunkSize) }.takeWhile { it.isNotEmpty() }
+        Stream.generate { readChunk(chunkSize) }
+            .takeWhile { it.isNotEmpty() }
+            .onClose { this.close() }
 
     private fun InputStream.readChunk(chunkSize: Int): ByteArray {
         val chunk = ByteArray(chunkSize)
@@ -131,8 +129,22 @@ open class Response(
      * Iterates over the response data, one line at a time. When stream=True is set on the request,
      * this avoids reading the content at once into memory for large responses.
      */
-    fun iterateLines(chunkSize: Int = 512, delimiter: String = "\r\n") : Stream<String> {
-        TODO("implement method")
+    fun iterateLines(): Stream<String> =
+        BufferedReader(InputStreamReader(httpResponse.body(), detectCharset(headers)))
+            .lines()
+            .onClose { httpResponse.body().close() }
+
+    private fun detectCharset(headers: Map<String, List<String>>): Charset {
+        val contentTypeHeader = headers["Content-Type"]?.firstOrNull()
+        val charsetRegex = Regex("charset=([^;]+)")
+        val charsetName = charsetRegex.find(contentTypeHeader ?: "")?.groupValues?.get(1)
+
+        return when (charsetName?.trim()?.lowercase()) {
+            "utf-8" -> Charsets.UTF_8
+            "iso-8859-1", "latin1" -> Charsets.ISO_8859_1
+            null -> Charsets.UTF_8
+            else -> Charset.forName(charsetName.trim())
+        }
     }
 
     /**
