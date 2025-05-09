@@ -31,7 +31,8 @@ dependencies {
 
     testImplementation("ch.qos.logback:logback-classic")
     testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation(platform("org.junit:junit-bom:5.12.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     testImplementation("io.javalin:javalin:6.6.0")
