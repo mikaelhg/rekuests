@@ -135,7 +135,7 @@ open class Response(
             .onClose { httpResponse.body().close() }
 
     private fun detectCharset(headers: Map<String, List<String>>): Charset {
-        val contentTypeHeader = headers["Content-Type"]?.firstOrNull()
+        val contentTypeHeader = headers["content-type"]?.firstOrNull()
         val charsetRegex = Regex("charset=([^;]+)")
         val charsetName = charsetRegex.find(contentTypeHeader ?: "")?.groupValues?.get(1)
 
@@ -176,12 +176,20 @@ open class Response(
     fun ok() = statusCode < 400
 
     /**
-     * Raises RekuestException, if one occurred.
+     * If the HTTP response status code was 400 to 600, raise a RekuestException.
+     *
+     * We do not replicate the status message functionality from requests,
+     * because HTTP/2 does not have a textual status message, and
+     * HTTP/2 is the current default.
+     *
      * @throws RekuestException
      */
     @Throws(RekuestException::class)
     fun raiseForStatus() {
-        TODO("implement method")
+        if (statusCode in 400..600) {
+            val message = "$statusCode for url: ${request.url}"
+            throw RekuestException(message, this)
+        }
     }
 
     /**
