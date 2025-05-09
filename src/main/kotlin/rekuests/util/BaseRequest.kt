@@ -9,7 +9,6 @@ import java.net.HttpCookie
 import java.net.ProxySelector
 import java.net.URI
 import java.net.http.HttpClient
-import java.nio.charset.StandardCharsets
 import java.time.Duration
 
 /**
@@ -37,7 +36,7 @@ abstract class BaseRequest(var url: String, val session: Session) {
 
     var verifyCertificate = true
 
-    var proxySelector = ProxySelector.getDefault()
+    var proxySelector = ProxySelector.getDefault()!!
 
     fun headers(vararg headers: Pair<String, String>) {
         headers.forEach { (k, v) -> this.headers[k] = v }
@@ -52,7 +51,7 @@ abstract class BaseRequest(var url: String, val session: Session) {
     }
 
     fun data(data: String) {
-        this.data = data.toByteArray(StandardCharsets.UTF_8)
+        this.data = data.toByteArray(Charsets.UTF_8)
     }
 
     abstract fun data(data: Map<String, String>)
