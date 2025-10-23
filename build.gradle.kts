@@ -1,7 +1,7 @@
 plugins {
     `java-library`
-    kotlin("jvm") version "2.1.20"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.2.21"
+    id("com.gradleup.shadow") version "9.2.2"
     id("com.github.ben-manes.versions") version "0.52.0"
 }
 
@@ -12,6 +12,8 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+    withJavadocJar()
+    withSourcesJar()
 }
 
 repositories {
@@ -21,28 +23,24 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 
-    implementation("com.github.mizosoft.methanol:methanol:1.8.2")
+    implementation("com.github.mizosoft.methanol:methanol:1.8.4")
     implementation("io.mikael:urlbuilder:2.0.9")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.19.0")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
 
     testImplementation(enforcedPlatform("org.slf4j:slf4j-parent:2.0.17"))
-    testImplementation(enforcedPlatform("ch.qos.logback:logback-parent:1.5.18"))
-    testImplementation(enforcedPlatform("org.eclipse.jetty:jetty-project:11.0.25"))
+    testImplementation(enforcedPlatform("ch.qos.logback:logback-parent:1.5.20"))
+    testImplementation(enforcedPlatform("org.eclipse.jetty:jetty-project:11.0.26"))
 
     testImplementation("ch.qos.logback:logback-classic")
     testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
-    testImplementation(platform("org.junit:junit-bom:5.12.2"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation(kotlin("test"))
 
-    testImplementation("io.javalin:javalin:6.6.0")
+    testImplementation("io.javalin:javalin:6.7.0")
 
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:5.17.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.1.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.20.0")
 }
 
-tasks {
-    test {
-        useJUnitPlatform()
-    }
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
